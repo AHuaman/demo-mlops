@@ -1,7 +1,9 @@
 """Seeded generator of a synthetic loan book, stored as a monthly "data lake".
 
-Each month is generated from its own RNG (`seed`, year, month), so months are independent:
-changing `end` never changes earlier months. Features are generated first, then the
+Each month is generated from its own RNG (`seed`, year, month), so months are independent
+of each other and reproducible given the same config. Note that the config still matters:
+the digital-channel share is interpolated between `start` and `end`, so changing either
+changes the channel mix of every month. Features are generated first, then the
 12-month default outcome is drawn from a logistic score over those features.
 """
 
@@ -21,6 +23,8 @@ REGION_SHARES = {"lima": 0.45, "norte": 0.20, "sur": 0.15, "centro": 0.12, "orie
 PRODUCT_SHARES = {"consumer": 0.55, "small_business": 0.30, "vehicle": 0.15}
 
 # Intercept of the default score, calibrated so the overall default rate lands near 10%.
+# Years after 2023-07 run higher (about 12%) because of the Norte shock and the growing
+# digital mix (digital applicants are slightly riskier).
 SCORE_INTERCEPT = -3.15
 
 

@@ -40,6 +40,16 @@ def test_default_rate_in_target_band():
     assert 0.08 <= lake.outcomes["default_date"].notna().mean() <= 0.12
 
 
+def test_default_rate_on_shipped_config_stays_in_band():
+    # Full default period: the digital ramp and the Norte shock both play out.
+    lake = simulate(SimulationConfig(loans_per_month=800))
+    joined = lake.applications.merge(lake.outcomes, on="loan_id")
+    joined["defaulted"] = joined["default_date"].notna()
+    assert 0.08 <= joined["defaulted"].mean() <= 0.12
+    by_year = joined.groupby(joined["origination_month"].map(lambda m: m.year))["defaulted"].mean()
+    assert (by_year <= 0.13).all(), by_year.to_dict()
+
+
 def test_default_dates_within_12_months(cfg):
     lake = simulate(cfg)
     joined = lake.applications.merge(lake.outcomes, on="loan_id")
