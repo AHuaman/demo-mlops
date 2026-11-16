@@ -13,6 +13,7 @@ from credit_mlops.registry.health import is_http, unreachable_reason
 from credit_mlops.settings import Settings
 
 SUBPROCESS_TIMEOUT_SECONDS = 10
+XGBOOST_IMPORT_TIMEOUT_SECONDS = 60  # a cold first import can take well over 10 s
 MLFLOW_PORT = 5000
 _LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
@@ -24,11 +25,11 @@ class Check(BaseModel):
     detail: str
 
 
-def _run(args: list[str]) -> subprocess.CompletedProcess[str]:
+def _run(
+    args: list[str], timeout: float = SUBPROCESS_TIMEOUT_SECONDS
+) -> subprocess.CompletedProcess[str]:
     """Run an argument list (no shell) with a timeout; callers handle OSError/timeouts."""
-    return subprocess.run(
-        args, capture_output=True, text=True, timeout=SUBPROCESS_TIMEOUT_SECONDS, check=False
-    )
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
 
 
 def _port_is_free(port: int) -> bool:
@@ -75,8 +76,16 @@ def check_dvc() -> Check:
 def check_xgboost() -> Check:
     name = "XGBoost carga correctamente"
     try:
-        result = _run([sys.executable, "-c", "import xgboost"])
-    except (OSError, subprocess.TimeoutExpired) as error:
+        result = _run(
+            [sys.executable, "-c", "import xgboost"], timeout=XGBOOST_IMPORT_TIMEOUT_SECONDS
+        )
+    except subprocess.TimeoutExpired:
+        detail = (
+            f"import xgboost tardó más de {XGBOOST_IMPORT_TIMEOUT_SECONDS} s: "
+            "vuelve a ejecutar doctor (la primera importación es lenta)"
+        )
+        return Check(name=name, ok=False, required=True, detail=detail)
+    except OSError as error:
         return Check(name=name, ok=False, required=True, detail=f"no se pudo probar: {error}")
     if result.returncode == 0:
         return Check(name=name, ok=True, required=True, detail="import xgboost funciona")

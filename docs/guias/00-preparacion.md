@@ -120,7 +120,7 @@ Docker es opcional para `doctor` (si falla verás `!`), pero lo necesitas para l
 
 Ejecuta `brew install libomp` y repite `doctor`.
 
-**XGBoost con "timed out after 10 seconds".** La primera vez que se importa XGBoost, el sistema puede tardar más de 10 segundos. Ejecuta `doctor` otra vez. La segunda vez responde en segundos.
+**XGBoost con "tardó más de 60 s".** La primera importación puede ser lenta. Ejecuta `doctor` otra vez.
 
 **uv o git "no está en el PATH".** Cierra la terminal y ábrela de nuevo. Si sigue igual, repite la instalación de ese paso.
 

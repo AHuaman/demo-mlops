@@ -28,9 +28,9 @@ Nuestro workflow tiene tres jobs:
 
 Con `matrix`, un mismo job se ejecuta varias veces con valores distintos. Nuestro job `test` corre en `ubuntu-latest` y en `windows-latest`. Así detectamos un fallo que solo ocurre en Windows, donde trabajan muchos estudiantes.
 
-## Por qué un check rojo bloquea el merge
+## Cuándo un check rojo bloquea el merge
 
-En GitHub puedes marcar ciertos checks como obligatorios para una rama. Si alguno está en rojo, el botón de merge queda deshabilitado. La regla protege `main`: nadie incorpora código que no pasa las pruebas, ni siquiera con prisa. (Esta regla se configura en el repositorio. Se muestra en clase, no se asume.)
+Un check rojo bloquea el botón de merge solo si una regla de protección de rama (branch protection o ruleset) exige ese check. GitHub ofrece esas reglas en repositorios públicos y en planes de pago. Nuestro repositorio del curso es privado y no las tiene, así que aquí CI informa pero no bloquea. La regla del equipo es otra: no se hace merge con CI en rojo.
 
 ## Pre-commit
 

@@ -12,7 +12,9 @@ from credit_mlops.settings import Settings
 def healthy(monkeypatch):
     """Every external probe succeeds, independent of this machine."""
     monkeypatch.setattr(doctor.shutil, "which", lambda name: f"/usr/bin/{name}")
-    monkeypatch.setattr(doctor, "_run", lambda args: subprocess.CompletedProcess(args, 0, "", ""))
+    monkeypatch.setattr(
+        doctor, "_run", lambda args, **kwargs: subprocess.CompletedProcess(args, 0, "", "")
+    )
     monkeypatch.setattr(doctor, "_server_reachable", lambda uri: True)
     monkeypatch.setattr(doctor, "_port_is_free", lambda port: True)
     monkeypatch.setattr(doctor.importlib.util, "find_spec", lambda name: object())
@@ -63,7 +65,9 @@ def test_docker_warning_mentions_wsl2_on_windows(healthy, monkeypatch):
 def test_xgboost_failure_on_macos_suggests_libomp(healthy, monkeypatch):
     monkeypatch.setattr(doctor.sys, "platform", "darwin")
     monkeypatch.setattr(
-        doctor, "_run", lambda args: subprocess.CompletedProcess(args, 1, "", "XGBoost Library")
+        doctor,
+        "_run",
+        lambda args, **kwargs: subprocess.CompletedProcess(args, 1, "", "XGBoost Library"),
     )
     check = _by_name(doctor.run_checks(Settings()), "XGBoost")
     assert not check.ok and check.required
@@ -75,9 +79,21 @@ def test_xgboost_failure_elsewhere_shows_error_line(healthy, monkeypatch):
     monkeypatch.setattr(
         doctor,
         "_run",
-        lambda args: subprocess.CompletedProcess(args, 1, "", "Traceback\nImportError: boom"),
+        lambda args, **kwargs: subprocess.CompletedProcess(
+            args, 1, "", "Traceback\nImportError: boom"
+        ),
     )
     assert _by_name(doctor.run_checks(Settings()), "XGBoost").detail == "ImportError: boom"
+
+
+def test_xgboost_timeout_asks_to_rerun(healthy, monkeypatch):
+    def slow(args, **kwargs):
+        raise subprocess.TimeoutExpired(args, kwargs.get("timeout", 10))
+
+    monkeypatch.setattr(doctor, "_run", slow)
+    check = _by_name(doctor.run_checks(Settings()), "XGBoost")
+    assert not check.ok and check.required
+    assert "60 s" in check.detail and "vuelve a ejecutar" in check.detail
 
 
 def test_sqlite_tracking_uri_counts_as_ok(healthy, monkeypatch):
