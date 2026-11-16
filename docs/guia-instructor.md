@@ -31,7 +31,7 @@ El contenido central cabe en 3 h 50 min, con una pausa de 10 minutos. La última
 - [ ] Confirma los datos de Databricks Free Edition que el primer 04 marca como no confirmados: si piden tarjeta, la forma de la URL del workspace, el valor de la cuota diaria, el nombre del catálogo por defecto y las funciones de MLflow y Unity Catalog incluidas. Confirma también la URL de registro (https://www.databricks.com/learn/free-edition).
 - [ ] Si instalas el CLI de Databricks con Homebrew 6, puede que antes tengas que ejecutar `brew trust --formula databricks/tap/databricks`.
 - [ ] Ensaya el epílogo de Databricks un día distinto al de la clase. La cuota diaria de Free Edition puede agotarse con el ensayo.
-- [ ] Opcional: toma capturas de un check de CI en verde y de la interfaz de Prefect, por si la red falla en clase.
+- [ ] Opcional: toma capturas de un check de CI en verde, de la interfaz de Prefect y, en Databricks, del experimento y de la versión 1 con `@champion` (guía 07, paso 6), por si la red falla en clase.
 - [ ] Problema conocido: `credit-mlops train` y `credit-mlops promote` se quedan unos 4 minutos sin responder si el servidor de MLflow no está corriendo, y luego fallan con `Connection refused`. Pide que inicien `uv run credit-mlops mlflow-server` antes de entrenar (guía 03, paso 1).
 
 ## Comandos por bloque
@@ -98,7 +98,7 @@ uv run prefect server start
 uv run credit-mlops serve-flow
 ```
 
-**Bloque 7.** Los comandos están en la guía 07, con las variables de entorno de Databricks.
+**Bloque 7.** Los comandos están en la guía 07. Los de `credit-mlops` y Python llevan `uv run --env-file .env.databricks`, que carga las variables de Databricks. Crea `.env.databricks` antes de la clase (guía 07, paso 2).
 
 ## Planes B
 
@@ -135,5 +135,7 @@ uv run credit-mlops serve-flow
 | CI en rojo de la guía 05 (corrida https://github.com/AHuaman/demo-mlops/actions/runs/43952332250) | `test (ubuntu-latest)` 1 min 20 s, `test (windows-latest)` 7 min 4 s |
 | CI en verde de la guía 05 (corrida https://github.com/AHuaman/demo-mlops/actions/runs/43953724900) | `test (ubuntu-latest)` 1 min 34 s, `test (windows-latest)` 5 min 27 s, `quality-gate` 1 min 8 s, `docker` 1 min 45 s |
 | Cada corrida de CI de la guía 05, de su creación al último job | unos 7 min (7 min 10 s la roja, 7 min 20 s la verde) |
+| `uv run --env-file .env.databricks credit-mlops train` contra Databricks Free Edition (guía 07) | 3 min 40 s de reloj |
+| `uv run --env-file .env.databricks credit-mlops promote` contra Databricks Free Edition (guía 07) | 41 s de reloj |
 
 Los tiempos de los bloques 1 a 4 están en la sección "Para el instructor" de cada guía.

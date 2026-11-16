@@ -230,6 +230,7 @@ mlruns/
 mlartifacts/
 *.db
 .env
+.env.databricks
 .dvc-remote/
 .ipynb_checkpoints/
 .superpowers/

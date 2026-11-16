@@ -50,6 +50,12 @@ macOS:
 brew install databricks/tap/databricks
 ```
 
+Con Homebrew 6, la instalación puede pedirte que primero confíes en el tap. Si ves ese mensaje, ejecuta esto y repite el `brew install`:
+
+```bash
+brew trust --formula databricks/tap/databricks
+```
+
 Windows (PowerShell):
 
 ```powershell
