@@ -34,3 +34,14 @@ def plot_feature_drift(reference: pd.DataFrame, current: pd.DataFrame, feature: 
     ax.legend()
     fig.tight_layout()
     return fig
+
+
+def log_drift_figure(feature: str, reference: pd.DataFrame, current: pd.DataFrame) -> None:
+    """Log the drift plot of `feature` to the active MLflow run and always close the figure."""
+    import mlflow
+
+    fig = plot_feature_drift(reference, current, feature)
+    try:
+        mlflow.log_figure(fig, f"drift/{feature}.png")
+    finally:
+        plt.close(fig)

@@ -168,7 +168,7 @@ def _log_run(
     reference: pd.DataFrame | None,
     current: pd.DataFrame | None,
 ) -> None:
-    from credit_mlops.monitoring.plots import plot_feature_drift
+    from credit_mlops.monitoring.plots import log_drift_figure
 
     step = months_between(settings.production_start, month)
     metrics: dict[str, float] = {f"psi__{f}": v for f, v in report.feature_psi.items()}
@@ -195,13 +195,9 @@ def _log_run(
         mlflow.log_metrics(metrics, step=step)
         mlflow.log_text(report.model_dump_json(indent=2), "report.json")
         if reference is not None and current is not None:
-            import matplotlib.pyplot as plt
-
             for feature, value in report.feature_psi.items():
                 if value >= settings.psi_watch:
-                    fig = plot_feature_drift(reference, current, feature)
-                    mlflow.log_figure(fig, f"drift/{feature}.png")
-                    plt.close(fig)
+                    log_drift_figure(feature, reference, current)
 
 
 def _baseline_auc(client: MlflowClient, run_id: str) -> float:
