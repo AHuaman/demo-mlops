@@ -107,4 +107,4 @@ Abre también http://localhost:8000/docs en el navegador. Debes ver la lista de 
 
 ## Dónde lo usamos
 
-Servimos el modelo con esta API en [Servir el modelo](../guias/04-servir-el-modelo.md).
+Servimos el modelo con esta API en [Servir el modelo](../guias/04-sirviendo-el-modelo.md).

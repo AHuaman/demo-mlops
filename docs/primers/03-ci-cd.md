@@ -30,15 +30,15 @@ Con `matrix`, un mismo job se ejecuta varias veces con valores distintos. Nuestr
 
 ## Cuándo un check rojo bloquea el merge
 
-Un check rojo bloquea el botón de merge solo si una regla de protección de rama (branch protection o ruleset) exige ese check. GitHub ofrece esas reglas en repositorios públicos y en planes de pago. Nuestro repositorio del curso es privado y no las tiene, así que aquí CI informa pero no bloquea. La regla del equipo es otra: no se hace merge con CI en rojo.
+Un check rojo bloquea el botón de merge solo si una regla de protección de rama (branch protection o ruleset) exige ese check. Esa regla requiere un repositorio público o un plan de pago. En el repositorio privado de un plan gratuito, CI informa pero no bloquea. En un repositorio público, el dueño puede activar la regla y exigir el check. En clase tu repositorio es tuyo, así que la regla del equipo es: no se hace merge con CI en rojo.
 
 ## Pre-commit
 
-`.pre-commit-config.yaml` ejecuta `ruff` en tu máquina antes de cada commit. Es el mismo chequeo que CI, pero con respuesta inmediata. CI sigue siendo la verificación definitiva, porque corre en una máquina limpia y nadie puede saltársela.
+`.pre-commit-config.yaml` ejecuta `ruff` en tu máquina antes de cada commit. Es el mismo chequeo que CI, pero con respuesta inmediata. CI sigue siendo la verificación definitiva, porque corre en una máquina limpia y no depende de tu máquina.
 
 ## Tiempos de una corrida real
 
-La corrida verde de nuestro repositorio, por job (medidos en GitHub Actions, se repiten con variaciones):
+Una corrida verde del instructor en GitHub Actions, por job. Son valores de una sola corrida, no una medición que puedas repetir; en la tuya variarán:
 
 | Job | Duración |
 | --- | --- |
@@ -67,4 +67,4 @@ Con el repositorio en orden, `ruff check` imprime `All checks passed!` y `ruff f
 
 ## Dónde lo usamos
 
-Revisamos el workflow y el quality gate en [Calidad y CI](../guias/05-calidad-y-ci.md).
+Revisamos el workflow y el quality gate en [Calidad y CI](../guias/05-ci.md).

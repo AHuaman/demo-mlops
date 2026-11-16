@@ -26,21 +26,21 @@ Medimos dos imágenes de la misma API. Los tamaños salen de `docker images` en 
 
 **Multi-stage** significa dos `FROM` en el mismo archivo. El primer stage (builder) instala las dependencias con uv. El segundo copia solo la carpeta `.venv` ya lista. Las herramientas de construcción no llegan a la imagen final.
 
-Alpine es una base mucho más pequeña, y por eso aparece en muchos tutoriales. No la usamos porque Alpine usa la librería musl, y los paquetes precompilados (wheels) para musl se llaman `musllinux`. Verificamos en PyPI si las versiones fijadas en `uv.lock` los publican, con un comando como este (cambia el paquete y la versión):
+Alpine es una base mucho más pequeña, y por eso aparece en muchos tutoriales. No la usamos porque Alpine usa la librería musl, y los paquetes precompilados (wheels) para musl se llaman `musllinux`. Verificamos en PyPI si las versiones fijadas en `uv.lock` los publican. Este comando cuenta los wheels `musllinux` de un paquete (funciona igual en macOS y Windows PowerShell):
 
 ```bash
-curl -s https://pypi.org/pypi/xgboost/3.4.1/json
+uv run python -c "import json,urllib.request as u; d=json.load(u.urlopen('https://pypi.org/pypi/xgboost/3.4.1/json')); print(sum('musllinux' in f['filename'] for f in d['urls']))"
 ```
 
-En la respuesta contamos los archivos `.whl` cuyo nombre contiene `musllinux` (consultado el 2026-11-16):
+Para cambiar de paquete, cambia el nombre y la versión en la URL. Salida real (consultado el 2026-11-16) con las versiones de `uv.lock`:
 
 | Paquete | Versión | Wheels musllinux |
 | --- | --- | --- |
 | scikit-learn | 1.9.1 | 0 |
 | xgboost | 3.4.1 | 0 |
 | numpy | 2.5.5 | 12 |
-| pandas | 3.1.1 | 14 |
-| pyarrow | 26.0.1 | 14 |
+
+numpy sirve de contraste. Otros paquetes del proyecto (pandas, pyarrow) también publican wheels musllinux. El problema son scikit-learn y xgboost.
 
 scikit-learn y xgboost solo publican wheels `manylinux` (para glibc). En Alpine, pip tendría que compilarlos desde el código fuente, lo cual es más lento, más frágil y exige compiladores dentro de la imagen. `python:3.13-slim` usa Debian con glibc e instala los wheels directo.
 
@@ -71,4 +71,4 @@ This message shows that your installation appears to be working correctly.
 
 ## Dónde lo usamos
 
-Construimos y ejecutamos la API en un contenedor en [Servir el modelo](../guias/04-servir-el-modelo.md).
+Construimos y ejecutamos la API en un contenedor en [Servir el modelo](../guias/04-sirviendo-el-modelo.md).

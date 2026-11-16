@@ -30,19 +30,35 @@ La tabla da solo la idea general. Los nombres de producto cambian con frecuencia
 
 ## Databricks Free Edition
 
-Databricks ofrece Free Edition, una versión gratuita para aprender. Según su documentación pública, funciona solo con compute serverless y con cuotas limitadas. Revisa la página de límites de Databricks para el detalle actual. El instructor confirmará en clase la cuota diaria exacta y qué funciones de MLflow y Unity Catalog incluye (no las verificamos para esta guía).
+Databricks ofrece Free Edition, una versión gratuita para aprender. La documentación pública confirma que funciona solo con compute serverless y con cuotas limitadas, y que si superas la cuota diaria el compute se apaga hasta el día siguiente (tus datos se conservan). También indica límites en los endpoints de model serving (por ejemplo, sin endpoints con GPU).
 
-Tienes que preparar esta cuenta antes de la parte final de la sesión, y no necesitas pagar ni registrar una tarjeta.
+Lo siguiente no lo pudimos confirmar en la documentación y el instructor lo confirmará en clase: si piden tarjeta de crédito (normalmente no), la forma exacta de la URL de tu workspace, el valor de la cuota diaria, el nombre del catálogo por defecto (normalmente `workspace`) y qué funciones de MLflow y Unity Catalog incluye.
 
 ### Crear la cuenta y el workspace
 
-1. Entra a la página de registro de Databricks Free Edition y elige un método de registro.
-2. Databricks crea tu workspace. Anota su URL, con la forma `https://<algo>.cloud.databricks.com`.
+1. Entra a https://www.databricks.com/learn/free-edition (o busca "Databricks Free Edition") y elige un método de registro.
+2. Databricks crea tu workspace. Anota su URL, que normalmente tiene la forma `https://<algo>.cloud.databricks.com`.
 3. Abre la URL y confirma que ves la interfaz del workspace.
 
-### Instalar el CLI y autenticarte
+### Instalar el CLI
 
-Instala el Databricks CLI siguiendo las instrucciones de su documentación para tu sistema operativo. Después, inicia sesión con tu navegador:
+La documentación oficial está en https://docs.databricks.com/aws/en/dev-tools/cli/install. Según esa página:
+
+macOS:
+
+```bash
+brew install databricks/tap/databricks
+```
+
+Windows (PowerShell):
+
+```powershell
+winget install Databricks.DatabricksCLI
+```
+
+Cierra y abre la terminal. Verifica con `databricks -v`.
+
+### Autenticarte
 
 ```bash
 databricks auth login --host <url-del-workspace> --profile <nombre>
@@ -54,9 +70,9 @@ El **profile** es un nombre guardado en tu archivo `~/.databrickscfg` (en Window
 
 ### Unity Catalog y nombres de tres niveles
 
-Unity Catalog organiza los objetos en tres niveles: `catalog.schema.model`. Por ejemplo, `workspace.credit.credit_default_pd` es el modelo `credit_default_pd` en el esquema `credit` del catálogo `workspace`.
+Unity Catalog organiza los objetos en tres niveles: `catalog.schema.model`. Por ejemplo, `workspace.credit.credit_default_pd` sería el modelo `credit_default_pd` en el esquema `credit` del catálogo `workspace`.
 
-En un workspace nuevo, el catálogo por defecto se llama `workspace`. Confírmalo en la interfaz, en Catalog. Con `databricks-uc` como registry, el nombre del modelo debe tener los tres niveles. Nuestro `Settings` rechaza un nombre sin ese formato.
+En un workspace nuevo, el catálogo por defecto normalmente se llama `workspace`. Confírmalo en la interfaz, en Catalog. Con `databricks-uc` como registry, el nombre del modelo debe tener los tres niveles. Nuestro `Settings` rechaza un nombre sin ese formato.
 
 ### Cuota diaria
 
@@ -70,8 +86,15 @@ Con el CLI instalado y tu profile creado:
 databricks auth profiles
 ```
 
-Debes ver tu `<nombre>` en la lista, con su URL. La columna de validez indica si el login sigue vigente. Si no, repite `databricks auth login`.
+Debes ver tu `<nombre>` en la lista, con su URL y una columna que indica si el login sigue vigente. Ejemplo ilustrativo, no ejecutado (no usamos ningún workspace para escribir esta guía), y el formato exacto puede variar:
+
+```text
+Name  Host                                  Valid
+free  https://<algo>.cloud.databricks.com   YES
+```
+
+Si la columna de validez dice `NO`, repite `databricks auth login`.
 
 ## Dónde lo usamos
 
-Probamos este cambio de plataforma en el epílogo: [Epílogo Databricks](../guias/08-epilogo-databricks.md).
+Probamos este cambio de plataforma en el epílogo: [Epílogo Databricks](../guias/07-epilogo-databricks.md).

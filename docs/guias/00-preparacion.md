@@ -8,7 +8,7 @@ Los comandos están en inglés tal como los escribirías. Donde macOS y Windows 
 
 | Herramienta | Para qué |
 | --- | --- |
-| git | Descargar el repositorio del curso |
+| git | Clonar tu repositorio del curso |
 | uv | Instala Python 3.13 y las dependencias del proyecto |
 | Docker Desktop | Ejecutar la API en un contenedor (parte de la sesión) |
 | libomp (solo macOS) | Librería que XGBoost necesita para cargar |
@@ -71,14 +71,20 @@ wsl --install
 
 Verifica con `docker --version` y `docker info`. El segundo comando debe responder sin error.
 
-## 5. El repositorio
+## 5. Tu repositorio
 
-Clona el repositorio del curso. El instructor te da acceso al repositorio de GitHub.
+Cada estudiante trabaja en su propio repositorio, creado desde la plantilla del curso. Así ves tus propios checks de CI en rojo y en verde.
+
+1. Entra a https://github.com/AHuaman/demo-mlops (necesitas una cuenta de GitHub).
+2. Pulsa **Use this template** y elige **Create a new repository**. Ponle el nombre que quieras y créalo.
+3. Clona tu repositorio:
 
 ```bash
-git clone https://github.com/AHuaman/demo-mlops.git
-cd demo-mlops
+git clone https://github.com/<tu-usuario>/<tu-repo>.git
+cd <tu-repo>
 ```
+
+Reemplaza `<tu-usuario>` y `<tu-repo>` con tus valores. El instructor publica la plantilla antes de la clase. Si no ves el botón **Use this template**, avísale.
 
 ## 6. Dependencias
 
