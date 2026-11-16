@@ -23,6 +23,7 @@ class CycleResult(BaseModel):
     scored: bool
     retrained: ModelRef | None = None
     gate: GateDecision | None = None
+    report: MonitoringReport
 
 
 @task
@@ -94,7 +95,12 @@ def monthly_cycle(month: str | None = None, alert_streak: int = 0) -> tuple[Cycl
         alert_streak = 0
 
     result = CycleResult(
-        month=label, status=report.status, scored=scored, retrained=retrained, gate=gate
+        month=label,
+        status=report.status,
+        scored=scored,
+        retrained=retrained,
+        gate=gate,
+        report=report,
     )
     return result, alert_streak
 
