@@ -1,6 +1,7 @@
 import mlflow
 import pytest
 from mlflow import MlflowClient
+from mlflow.exceptions import MlflowException
 
 from credit_mlops.registry.gate import decide, promote, rollback
 from credit_mlops.registry.logging import log_and_register
@@ -137,3 +138,12 @@ def test_model_card_logged(registry_settings, small_window):
     for heading in ("Intended use", "Training window", "Data version", "Known limits"):
         assert heading in card
     assert "simulated" in card and "2019-01 to 2020-06" in card
+
+
+def test_lookup_error_is_not_treated_as_missing_alias(registry_settings, monkeypatch):
+    def boom(self, name, alias):
+        raise MlflowException("connection reset", error_code="INTERNAL_ERROR")
+
+    monkeypatch.setattr(MlflowClient, "get_model_version_by_alias", boom)
+    with pytest.raises(MlflowException, match="connection reset"):
+        promote(registry_settings)

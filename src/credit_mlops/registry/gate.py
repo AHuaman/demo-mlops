@@ -61,11 +61,18 @@ def decide(
     )
 
 
+_MISSING_CODES = {"INVALID_PARAMETER_VALUE", "RESOURCE_DOES_NOT_EXIST"}
+
+
 def alias_version(client: MlflowClient, name: str, alias: str) -> str | None:
     try:
         return str(client.get_model_version_by_alias(name, alias).version)
-    except MlflowException:
-        return None
+    except MlflowException as error:
+        # MLflow 3.18 reports a missing alias as INVALID_PARAMETER_VALUE "... not found"
+        # (SQLite and REST server alike); anything else is a real failure, not "absent".
+        if "not found" in str(error) and error.error_code in _MISSING_CODES:
+            return None
+        raise
 
 
 def _score(settings: Settings, alias_uri: str, oot) -> EvalMetrics:

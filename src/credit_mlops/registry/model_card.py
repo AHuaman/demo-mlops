@@ -70,8 +70,8 @@ def render_model_card(settings: Settings, ref, result: TrainResult) -> str:
         "but not a real population.",
         f"- The model only saw loans originated in {train}; behavior outside that window "
         "is not validated.",
-        f"- Probabilities are calibrated on the OOT window ({oot}) only; calibration "
-        "can drift when the population changes.",
+        f"- Calibration was measured on the OOT window ({oot}) only; it can drift "
+        "when the population changes.",
         "- Loans younger than the label window have no observed outcome and are not "
         "part of the metrics.",
         "",
