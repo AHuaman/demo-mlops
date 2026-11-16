@@ -52,6 +52,17 @@ def promote_task() -> GateDecision:
     return promote(Settings())
 
 
+def next_streak(streak: int, performance_alert: bool, status: str) -> int:
+    """An alert adds one, a blocked month says nothing, any other month resets."""
+    if performance_alert:
+        return streak + 1
+    return streak if status == "block" else 0
+
+
+def should_retrain(streak: int, settings: Settings) -> bool:
+    return streak >= settings.retrain_after_consecutive_alerts
+
+
 def _previous_month() -> date:
     return add_months(date.today().replace(day=1), -1)
 
@@ -73,15 +84,11 @@ def monthly_cycle(month: str | None = None, alert_streak: int = 0) -> tuple[Cycl
         scored = True
     report = monitor_task(cycle_month)
 
-    # Streak rule: an alert adds one, a blocked month says nothing, any other month resets.
-    if report.performance_alert:
-        alert_streak += 1
-    elif report.status != "block":
-        alert_streak = 0
+    alert_streak = next_streak(alert_streak, report.performance_alert, report.status)
 
     retrained: ModelRef | None = None
     gate: GateDecision | None = None
-    if alert_streak >= settings.retrain_after_consecutive_alerts:
+    if should_retrain(alert_streak, settings):
         retrained = train_task(cycle_month)
         gate = promote_task()
         alert_streak = 0
