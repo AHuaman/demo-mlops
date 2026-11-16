@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import pytest
 
 from credit_mlops.data.contract import (
@@ -8,6 +10,7 @@ from credit_mlops.data.contract import (
 )
 from credit_mlops.data.lake import load_applications
 from credit_mlops.months import parse_month
+from credit_mlops.schema import CATEGORICAL_FEATURES, FEATURES, ID_COLUMNS, NUMERIC_FEATURES
 
 
 @pytest.fixture(scope="module")
@@ -77,5 +80,22 @@ def test_contract_violation_carries_result():
 
 def test_suite_is_generated_from_schema():
     suite = build_expectation_suite()
-    columns = {e.column for e in suite.expectations if hasattr(e, "column")}
-    assert {"loan_id", "origination_month", "monthly_income_pen", "region"} <= columns
+    by_type = defaultdict(list)
+    for e in suite.expectations:
+        by_type[type(e).__name__].append(e)
+
+    between = {
+        e.column: (e.min_value, e.max_value) for e in by_type["ExpectColumnValuesToBeBetween"]
+    }
+    assert between == {c: (s.min, s.max) for c, s in NUMERIC_FEATURES.items()}
+
+    in_set = {e.column: tuple(e.value_set) for e in by_type["ExpectColumnValuesToBeInSet"]}
+    assert in_set == CATEGORICAL_FEATURES
+
+    integer = {e.column for e in by_type["ExpectColumnValuesToBeInTypeList"]}
+    assert integer == {c for c, s in NUMERIC_FEATURES.items() if s.integer}
+
+    assert {e.column for e in by_type["ExpectColumnToExist"]} == {*ID_COLUMNS, *FEATURES}
+    assert {e.column for e in by_type["ExpectColumnValuesToNotBeNull"]} == set(FEATURES)
+    (row_count,) = by_type["ExpectTableRowCountToBeBetween"]
+    assert row_count.min_value == 1

@@ -42,3 +42,33 @@ def test_simulate_bureau_shift_incident_is_wired(tmp_path, monkeypatch):
     s, c = pd.read_parquet(shifted / june), pd.read_parquet(clean / june)
     assert (s["bureau_score"] != c["bureau_score"]).any()
     assert (s["bureau_score"] == (c["bureau_score"] - 80).clip(300, 999)).all()
+
+
+def _simulate_income_bug_lake(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREDIT_MLOPS_DATA_DIR", str(tmp_path))
+    result = CliRunner().invoke(
+        app, ["simulate", "--incident", "income-bug", "--loans-per-month", "20"]
+    )
+    assert result.exit_code == 0, result.output
+
+
+def test_validate_passes_on_clean_month(tmp_path, monkeypatch):
+    _simulate_income_bug_lake(tmp_path, monkeypatch)
+    result = CliRunner().invoke(app, ["validate", "--month", "2025-02"])
+    assert result.exit_code == 0, result.output
+    assert "contract OK" in result.stdout
+
+
+def test_validate_fails_on_corrupted_month(tmp_path, monkeypatch):
+    _simulate_income_bug_lake(tmp_path, monkeypatch)
+    result = CliRunner().invoke(app, ["validate", "--month", "2025-03"])
+    assert result.exit_code == 1
+    assert "contract FAILED" in result.stdout
+    assert any(line.startswith("  - monthly_income_pen: ") for line in result.stdout.splitlines())
+
+
+def test_validate_reports_missing_month(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREDIT_MLOPS_DATA_DIR", str(tmp_path))
+    result = CliRunner().invoke(app, ["validate", "--month", "2025-03"])
+    assert result.exit_code == 1
+    assert "2025-03" in result.stdout
