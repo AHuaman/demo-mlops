@@ -18,8 +18,8 @@ decision_threshold = 0.15
 explanation_top_k = 3
 
 # Busqueda de hiperparametros (HPO)
-hpo_n_estimators = [200, 400, 800]
-hpo_max_depth = [3, 5, 7]
+hpo_n_estimators = [100, 200, 400]
+hpo_max_depth = [2, 3, 4]
 learning_rate = 0.05
 
 # Monitoreo de drift: PSI y calibracion

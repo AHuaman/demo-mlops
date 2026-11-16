@@ -9,7 +9,7 @@ from credit_mlops.settings import DEFAULT_WINDOW, Settings, TrainingWindow
 def test_defaults_come_from_toml():
     s = Settings(_env_file=None)
     assert s.decision_threshold == 0.15
-    assert s.hpo_n_estimators == [200, 400, 800]
+    assert s.hpo_n_estimators == [100, 200, 400]
     assert s.production_start == date(2023, 1, 1)
     assert s.outcomes_path == s.data_dir / "raw" / "outcomes.parquet"
 

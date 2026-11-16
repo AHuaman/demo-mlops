@@ -36,8 +36,8 @@ class Settings(BaseSettings):
     registered_model_name: str = "credit_default_pd"
     decision_threshold: float = 0.15
     explanation_top_k: int = 3
-    hpo_n_estimators: list[int] = [200, 400, 800]
-    hpo_max_depth: list[int] = [3, 5, 7]
+    hpo_n_estimators: list[int] = [100, 200, 400]
+    hpo_max_depth: list[int] = [2, 3, 4]
     learning_rate: float = 0.05
     reference_sample_size: int = 5000
     psi_bins: int = 10
