@@ -223,10 +223,8 @@ __marimo__/
 docs/superpowers/
 
 # Project artifacts
-# Data is DVC-tracked: ignore its contents but keep the .dvc pointers
-/data/*
-!/data/*.dvc
-!/data/.gitignore
+# data/raw is DVC-tracked (dvc add writes data/.gitignore and data/raw.dvc)
+/data/predictions/
 mlruns/
 mlartifacts/
 *.db
