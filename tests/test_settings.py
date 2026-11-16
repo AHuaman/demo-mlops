@@ -14,6 +14,15 @@ def test_defaults_come_from_toml():
     assert s.outcomes_path == s.data_dir / "raw" / "outcomes.parquet"
 
 
+def test_toml_values_are_loaded_and_env_beats_toml(tmp_path, monkeypatch):
+    (tmp_path / "config").mkdir()
+    (tmp_path / "config" / "settings.toml").write_text("seed = 7\n")
+    monkeypatch.chdir(tmp_path)
+    assert Settings(_env_file=None).seed == 7
+    monkeypatch.setenv("CREDIT_MLOPS_SEED", "9")
+    assert Settings(_env_file=None).seed == 9
+
+
 def test_env_var_overrides_default(monkeypatch):
     monkeypatch.setenv("CREDIT_MLOPS_DECISION_THRESHOLD", "0.2")
     assert Settings(_env_file=None).decision_threshold == 0.2
