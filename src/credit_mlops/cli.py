@@ -141,3 +141,46 @@ def mlflow_server_command() -> None:
         "localhost:*,127.0.0.1:*,host.docker.internal:*",
     ]
     raise typer.Exit(code=subprocess.run(command).returncode)
+
+
+@app.command("promote")
+def promote_command() -> None:
+    """Run the promotion gate on `@challenger` and move `@champion` if it passes."""
+    from mlflow import MlflowClient
+    from mlflow.exceptions import MlflowException
+
+    from credit_mlops.registry.gate import alias_version, promote
+
+    settings = Settings()
+    client = MlflowClient(settings.mlflow_tracking_uri, settings.mlflow_registry_uri)
+    try:
+        name = settings.registered_model_name
+        challenger = alias_version(client, name, "challenger")
+        champion = alias_version(client, name, "champion")
+        decision = promote(settings)
+    except (ValueError, MlflowException) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    previous = f"v{champion}" if champion else "none"
+    if decision.promote:
+        typer.echo(f"PROMOTED: challenger v{challenger} is now champion (previous: {previous})")
+    else:
+        typer.echo(f"REJECTED: challenger v{challenger} vs champion v{champion}")
+    for reason in decision.reasons:
+        typer.echo(f"  - {reason}")
+
+
+@app.command("rollback")
+def rollback_command() -> None:
+    """Point `@champion` back at `@previous_champion`."""
+    from mlflow.exceptions import MlflowException
+
+    from credit_mlops.registry.gate import rollback
+
+    settings = Settings()
+    try:
+        ref = rollback(settings)
+    except (ValueError, MlflowException) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    typer.echo(f"champion is now {ref.name} v{ref.version}")

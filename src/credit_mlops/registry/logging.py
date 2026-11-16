@@ -14,6 +14,7 @@ import credit_mlops
 from credit_mlops.data.versioning import data_version, git_info
 from credit_mlops.months import month_label
 from credit_mlops.registry.mlflow_setup import configure_mlflow
+from credit_mlops.registry.model_card import render_model_card
 from credit_mlops.registry.pyfunc import CreditRiskModel
 from credit_mlops.schema import FEATURES
 from credit_mlops.settings import Settings
@@ -86,4 +87,6 @@ def log_and_register(settings: Settings, result: TrainResult, repo_root: Path) -
     version = str(info.registered_model_version)
     client = MlflowClient(settings.mlflow_tracking_uri, settings.mlflow_registry_uri)
     client.set_registered_model_alias(settings.registered_model_name, "challenger", version)
-    return ModelRef(name=settings.registered_model_name, version=version, run_id=parent.info.run_id)
+    ref = ModelRef(name=settings.registered_model_name, version=version, run_id=parent.info.run_id)
+    client.log_text(ref.run_id, render_model_card(settings, ref, result), "model_card.md")
+    return ref
