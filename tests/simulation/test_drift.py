@@ -94,19 +94,25 @@ def test_lab_incident_months_are_first_of_month():
 
 
 @pytest.mark.parametrize(
-    "kwargs",
+    ("kwargs", "message"),
     [
-        {"start": date(2025, 2, 1), "end": date(2025, 1, 1)},
-        {"start": date(2019, 1, 15)},
-        {"end": date(2025, 12, 31)},
-        {"shock_start": date(2023, 7, 2)},
-        {"digital_share_start": -0.1},
-        {"digital_share_end": 1.1},
-        {"shock_region": "Norte"},
-        {"incidents": {"income_in_thousands_from": date(2025, 3, 5)}},
-        {"incidents": {"bureau_shift_from": date(2025, 6, 30)}},
+        ({"start": date(2025, 2, 1), "end": date(2025, 1, 1)}, "must not be after end"),
+        ({"start": date(2019, 1, 15)}, "start must be the first day"),
+        ({"end": date(2025, 12, 31)}, "end must be the first day"),
+        ({"shock_start": date(2023, 7, 2)}, "shock_start must be the first day"),
+        ({"digital_share_start": -0.1}, "digital_share_start must be in"),
+        ({"digital_share_end": 1.1}, "digital_share_end must be in"),
+        ({"shock_region": "Norte"}, "shock_region must be one of"),
+        (
+            {"incidents": {"income_in_thousands_from": date(2025, 3, 5)}},
+            "income_in_thousands_from must be the first day",
+        ),
+        (
+            {"incidents": {"bureau_shift_from": date(2025, 6, 30)}},
+            "bureau_shift_from must be the first day",
+        ),
     ],
 )
-def test_invalid_config_fails_loudly(kwargs):
-    with pytest.raises(ValidationError):
+def test_invalid_config_fails_loudly(kwargs, message):
+    with pytest.raises(ValidationError, match=message):
         SimulationConfig(**kwargs)
