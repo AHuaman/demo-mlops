@@ -210,6 +210,33 @@ def score_command(
         typer.echo(f"  {decision}: {count}")
 
 
+@app.command("monitor")
+def monitor_command(
+    month: Annotated[str, typer.Option(help="Production month to monitor, as YYYY-MM.")],
+) -> None:
+    """Monitor one production month: contract, drift and matured-label performance."""
+    from credit_mlops.monitoring.report import monitor_month
+    from credit_mlops.months import parse_month
+    from credit_mlops.registry.loading import ModelUnavailableError
+
+    settings = Settings()
+    try:
+        report = monitor_month(settings, parse_month(month))
+    except (FileNotFoundError, ModelUnavailableError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    typer.echo(f"{month}: status {report.status} (model v{report.model_version})")
+    for reason in report.reasons:
+        typer.echo(f"  - {reason}")
+    psis = dict(report.feature_psi)
+    if report.prediction_psi is not None:
+        psis["prediction"] = report.prediction_psi
+    if psis:
+        typer.echo("Top PSI:")
+        for name, value in sorted(psis.items(), key=lambda item: -item[1])[:5]:
+            typer.echo(f"  {name}: {value:.3f}")
+
+
 @app.command("serve-api")
 def serve_api_command(
     host: Annotated[str, typer.Option(help="Interface to bind.")] = "127.0.0.1",
