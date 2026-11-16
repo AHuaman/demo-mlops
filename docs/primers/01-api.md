@@ -79,8 +79,8 @@ Una respuesta real de nuestra API para las dos solicitudes del ejemplo (recortad
 ```json
 {"model_name": "credit_default_pd", "model_version": "1", "threshold": 0.15,
  "predictions": [
-   {"probability_default": 0.0117, "decision": "approve", ...},
-   {"probability_default": 0.7481, "decision": "review", ...}]}
+   {"probability_default": 0.0115, "decision": "approve", ...},
+   {"probability_default": 0.7594, "decision": "review", ...}]}
 ```
 
 Cada predicción incluye también una explicación con los tres factores que más pesaron.
