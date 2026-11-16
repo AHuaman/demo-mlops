@@ -223,7 +223,7 @@ __marimo__/
 docs/superpowers/
 
 # Project artifacts
-data/
+/data/
 mlruns/
 mlartifacts/
 *.db
