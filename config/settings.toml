@@ -1,0 +1,47 @@
+# Configuracion base del proyecto. Se puede sobrescribir con variables de
+# entorno CREDIT_MLOPS_* o con un archivo .env.
+
+# Datos y reproducibilidad
+data_dir = "data"
+seed = 42
+
+# MLflow: servidor de tracking y registry
+mlflow_tracking_uri = "http://127.0.0.1:5000"
+# mlflow_registry_uri = "databricks-uc"   # con UC el modelo debe ser catalog.schema.model
+# mlflow_artifact_root = ""
+training_experiment = "credit-default-training"
+monitoring_experiment = "credit-default-monitoring"
+registered_model_name = "credit_default_pd"
+
+# Decision y explicaciones
+decision_threshold = 0.15
+explanation_top_k = 3
+
+# Busqueda de hiperparametros (HPO)
+hpo_n_estimators = [200, 400, 800]
+hpo_max_depth = [3, 5, 7]
+learning_rate = 0.05
+
+# Monitoreo de drift: PSI y calibracion
+reference_sample_size = 5000
+psi_bins = 10
+psi_watch = 0.10
+psi_act = 0.25
+calibration_tolerance = 0.15
+
+# Quality gate para promover un challenger
+gate_min_auc_gain = 0.0
+gate_max_region_auc_drop = 0.02
+region_min_loans = 500
+
+# Monitoreo de performance con labels maduros
+monitor_max_auc_drop = 0.03
+monitor_pool_cohorts = 3
+label_window_months = 12
+
+# Reentrenamiento automatico
+retrain_after_consecutive_alerts = 6
+retrain_half_life_months = 3.0
+
+# Inicio de la simulacion de produccion (YYYY-MM-DD)
+production_start = 2023-01-01
