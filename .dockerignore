@@ -1,0 +1,9 @@
+.venv
+data
+mlartifacts
+*.db
+.git
+docs
+notebooks
+tests
+.dvc-remote

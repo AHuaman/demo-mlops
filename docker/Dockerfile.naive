@@ -1,0 +1,6 @@
+# Deliberately naive image, used only to measure the size difference with ./Dockerfile.
+FROM python:3.13
+WORKDIR /app
+COPY . .
+RUN pip install uv && uv sync --all-extras
+CMD ["uv", "run", "uvicorn", "credit_mlops.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
