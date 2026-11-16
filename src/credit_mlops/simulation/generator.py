@@ -17,7 +17,7 @@ import pandas as pd
 
 from credit_mlops.months import add_months, month_label, month_range, months_between
 from credit_mlops.schema import CATEGORICAL_FEATURES, FEATURES, ID_COLUMNS, NUMERIC_FEATURES
-from credit_mlops.simulation.config import SimulationConfig
+from credit_mlops.simulation.config import IncidentConfig, SimulationConfig
 
 REGION_SHARES = {"lima": 0.45, "norte": 0.20, "sur": 0.15, "centro": 0.12, "oriente": 0.08}
 PRODUCT_SHARES = {"consumer": 0.55, "small_business": 0.30, "vehicle": 0.15}
@@ -165,11 +165,32 @@ def _generate_month(cfg: SimulationConfig, month: date) -> tuple[pd.DataFrame, p
     return features[ID_COLUMNS + FEATURES], outcomes
 
 
+def _apply_incidents(applications: pd.DataFrame, incidents: IncidentConfig) -> pd.DataFrame:
+    applications = applications.copy()
+    if incidents.income_in_thousands_from is not None:
+        hit = applications["origination_month"] >= incidents.income_in_thousands_from
+        # Deliberately not clipped: the point is that the values violate the contract minimum.
+        applications.loc[hit, "monthly_income_pen"] = (
+            applications.loc[hit, "monthly_income_pen"] / 1000
+        ).round(2)
+    if incidents.bureau_shift_from is not None:
+        hit = applications["origination_month"] >= incidents.bureau_shift_from
+        shifted = applications.loc[hit, "bureau_score"] + incidents.bureau_shift_points
+        applications.loc[hit, "bureau_score"] = shifted.clip(300, 999).astype(
+            applications["bureau_score"].dtype
+        )
+    return applications
+
+
 def simulate(cfg: SimulationConfig) -> Lake:
-    """Generate the whole lake. Incidents (cfg.incidents) are applied in a later step."""
+    """Generate the whole lake, then inject `cfg.incidents` into the recorded features.
+
+    Incidents never touch outcomes: they simulate data-quality failures, not real risk changes.
+    """
     parts = [_generate_month(cfg, m) for m in month_range(cfg.start, cfg.end)]
     applications = pd.concat([a for a, _ in parts], ignore_index=True)
     outcomes = pd.concat([o for _, o in parts], ignore_index=True)
+    applications = _apply_incidents(applications, cfg.incidents)
     return Lake(applications=applications, outcomes=outcomes)
 
 
