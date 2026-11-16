@@ -33,6 +33,32 @@ class Incident(StrEnum):
     bureau_shift = "bureau-shift"
 
 
+@app.command("validate")
+def validate_command(
+    month: Annotated[str, typer.Option(help="Month to validate, as YYYY-MM.")],
+) -> None:
+    """Check one month of applications against the data contract (exit 1 on failure)."""
+    # Imported here so the CLI stays usable without the `train` extra for other commands.
+    from credit_mlops.data.contract import validate_applications
+    from credit_mlops.data.lake import load_applications
+    from credit_mlops.months import parse_month
+
+    settings = Settings()
+    try:
+        df = load_applications(settings, [parse_month(month)])
+    except FileNotFoundError as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    result = validate_applications(df)
+    if result.success:
+        typer.echo(f"{month}: contract OK ({result.n_rows} rows)")
+        return
+    typer.echo(f"{month}: contract FAILED ({result.n_rows} rows)")
+    for message in result.failed:
+        typer.echo(f"  - {message}")
+    raise typer.Exit(code=1)
+
+
 @app.command("simulate")
 def simulate_command(
     loans_per_month: Annotated[int, typer.Option(help="Loans originated per month.")] = 2500,
