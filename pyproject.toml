@@ -70,4 +70,6 @@ filterwarnings = [
     "ignore:The ``noload`` loader strategy is deprecated:sqlalchemy.exc.SADeprecationWarning",
     "ignore:Hint. Inferred schema contains integer column:UserWarning",
     "ignore:Operation with range is deprecated:pandas.errors.Pandas4Warning",
+    # Starlette 1.x TestClient prefers httpx2; httpx is the supported dev dependency here.
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.:starlette.exceptions.StarletteDeprecationWarning",
 ]

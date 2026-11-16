@@ -1,0 +1,32 @@
+{
+  "applications": [
+    {
+      "bureau_score": 780,
+      "monthly_income_pen": 6500.0,
+      "debt_to_income": 0.18,
+      "loan_amount_pen": 12000.0,
+      "term_months": 24,
+      "age": 41,
+      "months_at_job": 96,
+      "num_active_lenders": 1,
+      "max_days_past_due_12m": 0,
+      "product": "consumer",
+      "region": "lima",
+      "channel": "branch"
+    },
+    {
+      "bureau_score": 510,
+      "monthly_income_pen": 1400.0,
+      "debt_to_income": 0.85,
+      "loan_amount_pen": 30000.0,
+      "term_months": 48,
+      "age": 23,
+      "months_at_job": 4,
+      "num_active_lenders": 6,
+      "max_days_past_due_12m": 75,
+      "product": "small_business",
+      "region": "oriente",
+      "channel": "digital"
+    }
+  ]
+}

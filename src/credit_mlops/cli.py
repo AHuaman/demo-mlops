@@ -208,3 +208,15 @@ def score_command(
     counts = pd.read_parquet(path, columns=["decision"])["decision"].value_counts()
     for decision, count in counts.items():
         typer.echo(f"  {decision}: {count}")
+
+
+@app.command("serve-api")
+def serve_api_command(
+    host: Annotated[str, typer.Option(help="Interface to bind.")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+) -> None:
+    """Serve `@champion` over HTTP with per-prediction explanations."""
+    # Imported here: uvicorn belongs to the `api` extra.
+    import uvicorn
+
+    uvicorn.run("credit_mlops.api.app:app", host=host, port=port)

@@ -99,3 +99,19 @@ def test_mlflow_server_launches_mlflow_with_expected_arguments(monkeypatch):
     assert command[command.index("--backend-store-uri") + 1] == "sqlite:///mlflow.db"
     assert command[command.index("--artifacts-destination") + 1] == "./mlartifacts"
     assert "--allowed-hosts" in command
+
+
+def test_serve_api_runs_uvicorn_with_defaults_and_overrides(monkeypatch):
+    import uvicorn
+
+    calls = []
+    monkeypatch.setattr(uvicorn, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
+    assert CliRunner().invoke(app, ["serve-api"]).exit_code == 0
+    assert (
+        CliRunner().invoke(app, ["serve-api", "--host", "0.0.0.0", "--port", "9000"]).exit_code == 0
+    )
+    target = "credit_mlops.api.app:app"
+    assert calls == [
+        ((target,), {"host": "127.0.0.1", "port": 8000}),
+        ((target,), {"host": "0.0.0.0", "port": 9000}),
+    ]

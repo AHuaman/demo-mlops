@@ -55,6 +55,10 @@ def _check_server_reachable(uri: str) -> None:
         ) from error
 
 
+def _is_http(uri: str) -> bool:
+    return uri.startswith(("http://", "https://"))
+
+
 def load_champion(settings: Settings, alias: str = "champion") -> LoadedModel:
     uri = settings.mlflow_tracking_uri
     _check_server_reachable(uri)
@@ -63,24 +67,30 @@ def load_champion(settings: Settings, alias: str = "champion") -> LoadedModel:
         mlflow.set_registry_uri(settings.mlflow_registry_uri)
     client = MlflowClient(uri, settings.mlflow_registry_uri)
     name = settings.registered_model_name
+    hint = "; start it with: credit-mlops mlflow-server" if _is_http(uri) else ""
     try:
         version = alias_version(client, name, alias)
-    except MlflowException as error:
+        if version is None:
+            raise ModelUnavailableError(
+                f"no @{alias} model for '{name}' in {uri}; train and promote one with: "
+                "credit-mlops train && credit-mlops promote"
+            )
+        # Load by the resolved version so ref.version and the model cannot disagree.
+        run_id = client.get_model_version(name, version).run_id
+        model = mlflow.pyfunc.load_model(f"models:/{name}/{version}")
+        params = dict(client.get_run(run_id).data.params)
+    except (MlflowException, OSError) as error:
         raise ModelUnavailableError(
-            f"cannot read the registry at {uri}: {error}; start it with: credit-mlops mlflow-server"
+            f"cannot load '{name}' @{alias} from {uri}: {error}{hint}"
         ) from error
-    if version is None:
+    if "threshold" not in (model.model_config or {}):
         raise ModelUnavailableError(
-            f"no @{alias} model for '{name}' in {uri}; train and promote one with: "
-            "credit-mlops train && credit-mlops promote"
+            f"model '{name}' version {version} has no 'threshold' in its model_config"
         )
-    run_id = client.get_model_version(name, version).run_id
-    model = mlflow.pyfunc.load_model(f"models:/{name}@{alias}")
-    window = dict(client.get_run(run_id).data.params)
     window_keys = ("train_start", "train_end", "oot_start", "oot_end", "as_of")
     return LoadedModel(
         ref=ModelRef(name=name, version=version, run_id=run_id),
         model=model,
         threshold=float(model.model_config["threshold"]),
-        window={k: window[k] for k in window_keys if k in window},
+        window={k: params[k] for k in window_keys if k in params},
     )

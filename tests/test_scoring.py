@@ -133,3 +133,96 @@ def test_prediction_logger_appends_across_calls(tmp_path):
     logger.append([{"loan_id": "b", "p": 0.2}])
     lines = (tmp_path / "nested" / "log.jsonl").read_text().splitlines()
     assert len(lines) == 2
+
+
+def _stub_registry(monkeypatch, *, load_model=None, get_run_error=None):
+    """Make the alias resolve to version 7 without a real registry."""
+    from types import SimpleNamespace
+
+    from mlflow.exceptions import MlflowException
+
+    from credit_mlops.registry import loading
+
+    monkeypatch.setattr(loading, "_check_server_reachable", lambda uri: None)
+    monkeypatch.setattr(loading, "alias_version", lambda client, name, alias: "7")
+    monkeypatch.setattr(
+        loading.MlflowClient,
+        "get_model_version",
+        lambda self, name, version: SimpleNamespace(run_id="run-1"),
+    )
+
+    def get_run(self, run_id):
+        if get_run_error:
+            raise MlflowException(get_run_error)
+        return SimpleNamespace(data=SimpleNamespace(params={"train_start": "2019-01"}))
+
+    monkeypatch.setattr(loading.MlflowClient, "get_run", get_run)
+    if load_model:
+        monkeypatch.setattr(loading.mlflow.pyfunc, "load_model", load_model)
+
+
+def test_load_champion_wraps_load_model_failures(small_settings, monkeypatch):
+    from mlflow.exceptions import MlflowException
+
+    def broken(uri):
+        raise MlflowException("artifact store down")
+
+    _stub_registry(monkeypatch, load_model=broken)
+    with pytest.raises(ModelUnavailableError, match="artifact store down"):
+        load_champion(small_settings)
+
+
+def test_load_champion_wraps_artifact_os_errors(small_settings, monkeypatch):
+    def broken(uri):
+        raise OSError("disk gone")
+
+    _stub_registry(monkeypatch, load_model=broken)
+    with pytest.raises(ModelUnavailableError, match="disk gone"):
+        load_champion(small_settings)
+
+
+def test_load_champion_wraps_get_run_failures(small_settings, monkeypatch):
+    from types import SimpleNamespace
+
+    ok = SimpleNamespace(model_config={"threshold": 0.2})
+    _stub_registry(monkeypatch, load_model=lambda uri: ok, get_run_error="run deleted")
+    with pytest.raises(ModelUnavailableError, match="run deleted"):
+        load_champion(small_settings)
+
+
+def test_load_champion_hint_only_for_http_uris(small_settings, monkeypatch):
+    from mlflow.exceptions import MlflowException
+
+    def broken(uri):
+        raise MlflowException("boom")
+
+    _stub_registry(monkeypatch, load_model=broken)
+    with pytest.raises(ModelUnavailableError) as sqlite_error:
+        load_champion(small_settings)
+    assert "mlflow-server" not in str(sqlite_error.value)
+    remote = small_settings.model_copy(update={"mlflow_tracking_uri": "http://127.0.0.1:5000"})
+    with pytest.raises(ModelUnavailableError, match="credit-mlops mlflow-server"):
+        load_champion(remote)
+
+
+def test_load_champion_requires_threshold_and_names_version(small_settings, monkeypatch):
+    from types import SimpleNamespace
+
+    _stub_registry(monkeypatch, load_model=lambda uri: SimpleNamespace(model_config={}))
+    with pytest.raises(ModelUnavailableError, match="version 7"):
+        load_champion(small_settings)
+
+
+def test_load_champion_loads_the_resolved_version(small_settings, monkeypatch):
+    from types import SimpleNamespace
+
+    seen = []
+
+    def record(uri):
+        seen.append(uri)
+        return SimpleNamespace(model_config={"threshold": 0.2})
+
+    _stub_registry(monkeypatch, load_model=record)
+    loaded = load_champion(small_settings)
+    assert seen == [f"models:/{small_settings.registered_model_name}/7"]
+    assert loaded.ref.version == "7"
