@@ -2,7 +2,9 @@
 
 from datetime import date
 
+import mlflow
 import pytest
+from mlflow.tracking._model_registry import utils as registry_utils
 
 from credit_mlops.settings import Settings, TrainingWindow
 from credit_mlops.simulation.config import SimulationConfig
@@ -36,3 +38,18 @@ def small_window() -> TrainingWindow:
         oot_end=date(2020, 12, 1),
         as_of=date(2021, 12, 1),
     )
+
+
+@pytest.fixture(autouse=True)
+def restore_mlflow_uris(monkeypatch):
+    """configure_mlflow sets global URIs that would outlive the test's tmp_path.
+
+    The registry URI is restored as "unset" when it was unset (it then follows the tracking
+    URI); pinning it with get_registry_uri() would make later tests register into a stale DB.
+    """
+    tracking = mlflow.get_tracking_uri()
+    registry = registry_utils._registry_uri
+    monkeypatch.delenv("MLFLOW_REGISTRY_URI", raising=False)
+    yield
+    mlflow.set_tracking_uri(tracking)
+    registry_utils._registry_uri = registry

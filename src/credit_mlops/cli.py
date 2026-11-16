@@ -184,3 +184,27 @@ def rollback_command() -> None:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
     typer.echo(f"champion is now {ref.name} v{ref.version}")
+
+
+@app.command("score")
+def score_command(
+    month: Annotated[str, typer.Option(help="Month to score, as YYYY-MM.")],
+) -> None:
+    """Score one month of applications with `@champion` and write a parquet file."""
+    import pandas as pd
+
+    from credit_mlops.data.contract import ContractViolation
+    from credit_mlops.months import parse_month
+    from credit_mlops.registry.loading import ModelUnavailableError
+    from credit_mlops.scoring import score_month
+
+    settings = Settings()
+    try:
+        path = score_month(settings, parse_month(month))
+    except (FileNotFoundError, ContractViolation, ModelUnavailableError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    typer.echo(f"Wrote {path}")
+    counts = pd.read_parquet(path, columns=["decision"])["decision"].value_counts()
+    for decision, count in counts.items():
+        typer.echo(f"  {decision}: {count}")

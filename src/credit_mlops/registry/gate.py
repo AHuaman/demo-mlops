@@ -3,11 +3,11 @@
 import mlflow
 import mlflow.pyfunc
 from mlflow import MlflowClient
-from mlflow.exceptions import MlflowException
 from pydantic import BaseModel
 
 from credit_mlops.data.lake import attach_labels, load_applications, load_outcomes
 from credit_mlops.months import month_range, parse_month
+from credit_mlops.registry.loading import alias_version
 from credit_mlops.registry.logging import ModelRef
 from credit_mlops.registry.mlflow_setup import configure_mlflow
 from credit_mlops.schema import FEATURES, SEGMENT_COLUMN, TARGET
@@ -59,20 +59,6 @@ def decide(
     return GateDecision(
         promote=not reasons, reasons=reasons, challenger=challenger, champion=champion
     )
-
-
-_MISSING_CODES = {"INVALID_PARAMETER_VALUE", "RESOURCE_DOES_NOT_EXIST"}
-
-
-def alias_version(client: MlflowClient, name: str, alias: str) -> str | None:
-    try:
-        return str(client.get_model_version_by_alias(name, alias).version)
-    except MlflowException as error:
-        # MLflow 3.18 reports a missing alias as INVALID_PARAMETER_VALUE "... not found"
-        # (SQLite and REST server alike); anything else is a real failure, not "absent".
-        if "not found" in str(error) and error.error_code in _MISSING_CODES:
-            return None
-        raise
 
 
 def _score(settings: Settings, alias_uri: str, oot) -> EvalMetrics:
