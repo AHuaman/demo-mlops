@@ -223,7 +223,8 @@ __marimo__/
 docs/superpowers/
 
 # Project artifacts
-# data/raw is DVC-tracked (dvc add writes data/.gitignore and data/raw.dvc)
+# generated lake: tracked by DVC through data/raw.dvc, never committed directly
+/data/raw/
 /data/predictions/
 mlruns/
 mlartifacts/
