@@ -35,7 +35,7 @@ def test_digital_share_grows(lake):
     share = a.groupby(a.origination_month.map(lambda d: d.year))["channel"].apply(
         lambda s: (s == "digital").mean()
     )
-    assert share[2019] < 0.22 and share[2025] > 0.53
+    assert share[2019] < 0.22 and share[2025] > 0.38
 
 
 def test_norte_shock_raises_default_rate_after_start(lake):

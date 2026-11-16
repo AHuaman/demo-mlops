@@ -37,9 +37,9 @@ class SimulationConfig(BaseModel):
     start: date = date(2019, 1, 1)
     end: date = date(2025, 12, 1)
     loans_per_month: int = 2500
-    # Share of applications coming from the digital channel grows linearly over the period.
+    # Share of applications coming from the digital channel grows linearly (0.15 to 0.45).
     digital_share_start: float = 0.15
-    digital_share_end: float = 0.60
+    digital_share_end: float = 0.45
     # From `shock_start`, loans in `shock_region` get riskier (a regional economic shock).
     shock_start: date = date(2023, 7, 1)
     shock_region: str = "norte"

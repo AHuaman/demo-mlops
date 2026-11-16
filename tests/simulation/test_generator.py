@@ -8,7 +8,7 @@ from credit_mlops.schema import CATEGORICAL_FEATURES, NUMERIC_FEATURES
 from credit_mlops.simulation.config import SimulationConfig
 from credit_mlops.simulation.generator import content_hash, simulate, write_lake
 
-GOLDEN_HASH = "e295cbd7dbfefdb5ab979110179847cefd0c6b94d5e3d594e8393c31f94ef2e7"
+GOLDEN_HASH = "6fcf8e523081d0e6728f13b9b97f64a8f5d7d82e02275d0aa9e0c7ec07b0b87f"
 
 
 @pytest.fixture
