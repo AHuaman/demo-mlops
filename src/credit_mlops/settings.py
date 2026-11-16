@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     psi_watch: float = 0.10
     psi_act: float = 0.25
     calibration_tolerance: float = 0.15
+    calibration_min_z: float = 3.0
     gate_min_auc_gain: float = 0.0
     gate_max_region_auc_drop: float = 0.02
     monitor_max_auc_drop: float = 0.03

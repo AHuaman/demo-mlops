@@ -12,6 +12,19 @@ def test_calibration_ratio():
     assert m.calibration_ratio == pytest.approx(0.5)
 
 
+def test_calibration_z_is_binomial_z_score():
+    # p = 0.125 on 4 loans: expected 0.5 defaults, observed 1, variance 4 * 0.125 * 0.875
+    p = np.full(4, 0.125)
+    m = evaluate(np.array([0, 0, 0, 1]), p, pd.Series(["a", "a", "b", "b"]))
+    expected = (1 - 0.5) / np.sqrt(4 * 0.125 * 0.875)
+    assert m.calibration_z == pytest.approx(expected)
+    assert m.by_segment["a"].calibration_z == pytest.approx(-0.25 / np.sqrt(2 * 0.125 * 0.875))
+
+
+def test_calibration_z_is_none_without_variance():
+    assert evaluate(np.array([0, 1]), np.array([0.0, 1.0])).calibration_z is None
+
+
 def test_segment_with_one_class_has_no_auc():
     m = evaluate(np.array([0, 1, 0]), np.array([0.1, 0.9, 0.2]), pd.Series(["a", "a", "b"]))
     assert m.by_segment["b"].roc_auc is None

@@ -15,6 +15,7 @@ class SegmentMetrics(BaseModel):
     default_rate: float
     roc_auc: float | None
     calibration_ratio: float | None
+    calibration_z: float | None = None
 
 
 class EvalMetrics(BaseModel):
@@ -24,6 +25,7 @@ class EvalMetrics(BaseModel):
     pr_auc: float | None
     brier: float
     calibration_ratio: float | None
+    calibration_z: float | None = None
     by_segment: dict[str, SegmentMetrics]
 
     def flat(self, prefix: str) -> dict[str, float]:
@@ -35,12 +37,14 @@ class EvalMetrics(BaseModel):
             f"{prefix}_pr_auc": self.pr_auc,
             f"{prefix}_brier": self.brier,
             f"{prefix}_calibration_ratio": self.calibration_ratio,
+            f"{prefix}_calibration_z": self.calibration_z,
         }
         for name, seg in self.by_segment.items():
             out[f"{prefix}_n__{name}"] = seg.n
             out[f"{prefix}_default_rate__{name}"] = seg.default_rate
             out[f"{prefix}_roc_auc__{name}"] = seg.roc_auc
             out[f"{prefix}_calibration_ratio__{name}"] = seg.calibration_ratio
+            out[f"{prefix}_calibration_z__{name}"] = seg.calibration_z
         return {k: float(v) for k, v in out.items() if v is not None}
 
 
@@ -53,6 +57,14 @@ def _auc(y_true: np.ndarray, y_prob: np.ndarray) -> float | None:
 def _calibration(y_true: np.ndarray, y_prob: np.ndarray) -> float | None:
     observed = float(np.mean(y_true))
     return float(np.mean(y_prob)) / observed if observed > 0 else None
+
+
+def _calibration_z(y_true: np.ndarray, y_prob: np.ndarray) -> float | None:
+    """Binomial z-score: (observed defaults - expected defaults) / sqrt(sum p(1-p))."""
+    variance = float(np.sum(y_prob * (1 - y_prob)))
+    if variance <= 0:
+        return None
+    return float((np.sum(y_true) - np.sum(y_prob)) / np.sqrt(variance))
 
 
 def evaluate(
@@ -70,6 +82,7 @@ def evaluate(
                 default_rate=float(y_true[mask].mean()),
                 roc_auc=_auc(y_true[mask], y_prob[mask]),
                 calibration_ratio=_calibration(y_true[mask], y_prob[mask]),
+                calibration_z=_calibration_z(y_true[mask], y_prob[mask]),
             )
     one_class = len(np.unique(y_true)) < 2
     return EvalMetrics(
@@ -79,6 +92,7 @@ def evaluate(
         pr_auc=None if one_class else float(average_precision_score(y_true, y_prob)),
         brier=float(brier_score_loss(y_true, y_prob)),
         calibration_ratio=_calibration(y_true, y_prob),
+        calibration_z=_calibration_z(y_true, y_prob),
         by_segment=by_segment,
     )
 

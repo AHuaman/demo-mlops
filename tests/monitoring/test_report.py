@@ -17,7 +17,7 @@ from credit_mlops.training.evaluate import EvalMetrics, SegmentMetrics
 from credit_mlops.training.train import train_model
 
 
-def perf(auc=0.78, cal=1.0, regions=None) -> CohortPerformance:
+def perf(auc=0.78, cal=1.0, regions=None, z=0.0) -> CohortPerformance:
     metrics = EvalMetrics(
         n=3000,
         default_rate=0.1,
@@ -25,9 +25,12 @@ def perf(auc=0.78, cal=1.0, regions=None) -> CohortPerformance:
         pr_auc=0.3,
         brier=0.08,
         calibration_ratio=cal,
+        calibration_z=z,
         by_segment={
-            name: SegmentMetrics(n=n, default_rate=0.1, roc_auc=0.7, calibration_ratio=ratio)
-            for name, (n, ratio) in (regions or {}).items()
+            name: SegmentMetrics(
+                n=n, default_rate=0.1, roc_auc=0.7, calibration_ratio=ratio, calibration_z=seg_z
+            )
+            for name, (n, ratio, seg_z) in (regions or {}).items()
         },
     )
     return CohortPerformance(cohorts=["2023-01"], model_version="1", metrics=metrics)
@@ -66,21 +69,28 @@ def test_auc_drop_within_tolerance_is_ok(settings):
 
 def test_region_calibration_alert(settings):
     status, perf_alert, _, reasons = decide_status(
-        True, {}, 0.0, perf(regions={"norte": (1500, 0.55)}), 0.78, settings
+        True, {}, 0.0, perf(regions={"norte": (1500, 0.55, -9.0)}), 0.78, settings
     )
     assert status == "retrain" and perf_alert
-    assert any("norte" in r and "0.55" in r for r in reasons)
+    assert any("norte" in r and "0.55" in r and "z = -9.0" in r for r in reasons)
+
+
+def test_calibration_outside_tolerance_but_not_significant_is_ok(settings):
+    status, perf_alert, _, _ = decide_status(
+        True, {}, 0.0, perf(regions={"oriente": (592, 0.74, -2.5)}), 0.78, settings
+    )
+    assert status == "ok" and not perf_alert
 
 
 def test_small_region_ignored(settings):
     status, perf_alert, _, _ = decide_status(
-        True, {}, 0.0, perf(regions={"oriente": (300, 0.5)}), 0.78, settings
+        True, {}, 0.0, perf(regions={"oriente": (300, 0.5, -9.0)}), 0.78, settings
     )
     assert status == "ok" and not perf_alert
 
 
 def test_overall_calibration_alert(settings):
-    assert decide_status(True, {}, 0.0, perf(cal=1.3), 0.78, settings)[0] == "retrain"
+    assert decide_status(True, {}, 0.0, perf(cal=1.3, z=8.0), 0.78, settings)[0] == "retrain"
 
 
 @pytest.fixture

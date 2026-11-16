@@ -45,6 +45,13 @@ class MonitoringReport(BaseModel):
     reasons: list[str]
 
 
+def _miscalibrated(ratio: float | None, z: float | None, tol: float, z_min: float) -> bool:
+    """Outside the tolerance band AND statistically significant (binomial |z|)."""
+    if ratio is None or z is None:
+        return False
+    return abs(ratio - 1) > tol and abs(z) >= z_min
+
+
 def decide_status(
     contract_ok: bool,
     feature_psi: dict[str, float],
@@ -80,19 +87,21 @@ def decide_status(
                 f"AUC {metrics.roc_auc:.3f} is {baseline_auc - metrics.roc_auc:.3f} below "
                 f"the champion's OOT AUC {baseline_auc:.3f} (limit {settings.monitor_max_auc_drop})"
             )
-        if metrics.calibration_ratio is not None and abs(metrics.calibration_ratio - 1) > tol:
+        z_min = settings.calibration_min_z
+        if _miscalibrated(metrics.calibration_ratio, metrics.calibration_z, tol, z_min):
             performance_alert = True
             reasons.append(
-                f"calibration ratio overall = {metrics.calibration_ratio:.2f} outside 1 ± {tol}"
+                f"calibration ratio overall = {metrics.calibration_ratio:.2f} outside 1 ± {tol} "
+                f"(z = {metrics.calibration_z:.1f}, n={metrics.n})"
             )
         for region, seg in metrics.by_segment.items():
-            if seg.n < settings.region_min_loans or seg.calibration_ratio is None:
+            if seg.n < settings.region_min_loans:
                 continue
-            if abs(seg.calibration_ratio - 1) > tol:
+            if _miscalibrated(seg.calibration_ratio, seg.calibration_z, tol, z_min):
                 performance_alert = True
                 reasons.append(
                     f"calibration ratio for region {region} = {seg.calibration_ratio:.2f} "
-                    f"outside 1 ± {tol} (n={seg.n})"
+                    f"outside 1 ± {tol} (z = {seg.calibration_z:.1f}, n={seg.n})"
                 )
     status = "investigate" if drift_alert else "retrain" if performance_alert else "ok"
     return status, performance_alert, drift_alert, reasons
@@ -180,9 +189,13 @@ def _log_run(
             metrics["matured_roc_auc"] = m.roc_auc
         if m.calibration_ratio is not None:
             metrics["matured_calibration_ratio"] = m.calibration_ratio
+        if m.calibration_z is not None:
+            metrics["matured_calibration_z"] = m.calibration_z
         for region, seg in m.by_segment.items():
             if seg.calibration_ratio is not None:
                 metrics[f"matured_calibration_ratio__{region}"] = seg.calibration_ratio
+            if seg.calibration_z is not None:
+                metrics[f"matured_calibration_z__{region}"] = seg.calibration_z
     configure_mlflow(settings, settings.monitoring_experiment)
     with mlflow.start_run(run_name=f"monitor-{month_label(month)}"):
         mlflow.set_tags(
