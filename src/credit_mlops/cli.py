@@ -247,3 +247,37 @@ def serve_api_command(
     import uvicorn
 
     uvicorn.run("credit_mlops.api.app:app", host=host, port=port)
+
+
+@app.command("simulate-production")
+def simulate_production_command(
+    start: Annotated[str, typer.Option(help="First production month, as YYYY-MM.")],
+    end: Annotated[str, typer.Option(help="Last production month, as YYYY-MM.")],
+) -> None:
+    """Replay the monthly cycle (validate, score, monitor, retrain) over a range of months."""
+    # Imported here: prefect belongs to the `flows` dependency set and is slow to import.
+    from credit_mlops.flows import simulate_production
+    from credit_mlops.registry.loading import ModelUnavailableError
+
+    try:
+        results = simulate_production(start, end)
+    except (FileNotFoundError, ModelUnavailableError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
+    for result in results:
+        line = f"{result.month}  {result.status:<11} scored={result.scored}"
+        if result.retrained is not None and result.gate is not None:
+            outcome = "passed" if result.gate.promote else "failed"
+            line += f"  retrained v{result.retrained.version}, gate {outcome}"
+        typer.echo(line)
+
+
+@app.command("serve-flow")
+def serve_flow_command() -> None:
+    """Serve `monthly_cycle` on a cron (06:00 on day 1) for the previous month.
+
+    In served mode every run starts with an alert streak of 0.
+    """
+    from credit_mlops.flows import monthly_cycle
+
+    monthly_cycle.serve(name="monthly-cycle", cron="0 6 1 * *")
