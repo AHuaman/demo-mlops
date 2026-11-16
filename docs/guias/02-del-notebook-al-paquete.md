@@ -271,7 +271,7 @@ uv run dvc status
 Data and pipelines are up to date.
 ```
 
-Un compañero, o el servidor de CI, obtiene tus datos exactos de la misma forma. Clona el repositorio y ejecuta `dvc pull`.
+Con un remote compartido (un bucket en la nube), a un compañero le basta clonar el repositorio y ejecutar `dvc pull` para obtener tus datos exactos. Aquí el remote es una carpeta local, así que solo funciona en tu máquina.
 
 ## Paso 6. Valida los datos con el contrato
 

@@ -287,9 +287,9 @@ uv run python -c "lines = open('data/predictions/api/predictions.jsonl').read().
 
 Dos de la API local (paso 4) y dos del contenedor.
 
-**Windows.** Verifica esta guía con `docker compose up` tal como está escrita. Docker Desktop con WSL2 resuelve `host.docker.internal` hacia tu máquina, igual que en macOS.
+**Windows.** Con Docker Desktop, `compose.yaml` usa `host.docker.internal` para llegar al MLflow de tu máquina, y los comandos de este paso deberían funcionar igual. Si `/ready` del contenedor responde 503 con un mensaje que menciona `host.docker.internal:5000` mientras MLflow sí corre en la segunda terminal, avísale al instructor y sigue con `uv run credit-mlops serve-api`.
 
-**Linux nativo.** Esta guía se probó con Docker Desktop (macOS y Windows). Con Docker nativo en Linux hay dos diferencias:
+**Linux nativo.** Esta guía se probó en macOS con Docker Desktop. Con Docker nativo en Linux hay dos diferencias:
 
 1. Si `data/predictions` no existe, Docker la crea como `root` y el contenedor (usuario `app`, uid 1000) no puede escribir en ella. Créala antes con tu usuario (`mkdir -p data/predictions`) y comprueba que tu uid sea 1000, o cambia el bind mount por un volumen con nombre.
 2. `host.docker.internal` apunta a la IP del bridge de Docker, y un MLflow escuchando en `127.0.0.1` rechaza esa conexión. Tendrías que iniciar MLflow en `0.0.0.0`, lo que lo expone a toda tu red sin autenticación. Hazlo solo en una red de confianza.

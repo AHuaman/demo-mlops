@@ -64,7 +64,7 @@ En http://127.0.0.1:5000:
 1. Entra a **Experiments** y abre `credit-default-training`. Si ves un selector de tipo de experimento, elige **Model training**.
 2. En la tabla de **Runs** aparece `train-2023-01`. Expándela con el botón de su fila y verás las 9 corridas hijas. Cada hija tiene dos parámetros (`n_estimators`, `max_depth`) y una métrica (`validation_auc`).
 3. Abre `train-2023-01`. En **Overview** revisa tres bloques.
-   - En **Parameters** está la ventana completa (`train_start`, `oot_end`, `as_of`...), los hiperparámetros elegidos y el umbral.
+   - En **Parameters** está la ventana completa (`train_start`, `oot_end`, `as_of`...), los hiperparámetros elegidos, `threshold` y `top_k`. Nuestro código no registra estos dos últimos como parámetros. Son la configuración del modelo pyfunc (`model_config`), y MLflow los copia a la corrida al guardar el modelo.
    - En **Metrics** todas las métricas empiezan con `oot_`. Las que terminan en `__lima`, `__norte`, etc. son por región.
    - En **Tags** están `git_sha`, `git_dirty`, `data_version` (el hash de DVC) y `settings_hash`. Con ellas se reconstruye el modelo (paso 9).
 4. En **Artifacts** están `model_card.md` (la ficha del modelo) y `reference/reference.parquet`, una muestra de 5000 filas de entrenamiento con su PD. Esa muestra es la referencia contra la que el monitoreo mide el drift (guía 06).
