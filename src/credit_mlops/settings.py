@@ -44,7 +44,9 @@ class Settings(BaseSettings):
     psi_watch: float = 0.10
     psi_act: float = 0.25
     calibration_tolerance: float = 0.15
-    calibration_min_z: float = 3.0
+    # ~6 calibration tests a month (overall + 5 regions) is ~72 a year: a Bonferroni-style 1%
+    # yearly bound is z ~ 3.8, and the binomial variance ignores the model's estimation error.
+    calibration_min_z: float = 4.0
     gate_min_auc_gain: float = 0.0
     gate_max_region_auc_drop: float = 0.02
     monitor_max_auc_drop: float = 0.03

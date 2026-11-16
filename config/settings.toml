@@ -28,8 +28,10 @@ psi_bins = 10
 psi_watch = 0.10
 psi_act = 0.25
 calibration_tolerance = 0.15
-# Una alerta de calibracion exige ademas evidencia estadistica: |z| binomial >= este valor
-calibration_min_z = 3.0
+# Una alerta de calibracion exige ademas evidencia estadistica: |z| binomial >= este valor.
+# Cada mes son ~6 pruebas (global + 5 regiones), ~72 al ano: con Bonferroni a 1% anual z ~ 3.8,
+# y la varianza binomial ignora el error de estimacion del propio modelo.
+calibration_min_z = 4.0
 
 # Quality gate para promover un challenger
 gate_min_auc_gain = 0.0
