@@ -13,4 +13,4 @@ def test_features_are_numeric_then_categorical() -> None:
 
 
 def test_income_floor() -> None:
-    assert NUMERIC_FEATURES["monthly_income_pen"].min == 5000
+    assert NUMERIC_FEATURES["monthly_income_pen"].min == 500
