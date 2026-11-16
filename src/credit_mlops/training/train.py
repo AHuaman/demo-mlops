@@ -32,13 +32,12 @@ def _fit(
     max_depth: int,
 ) -> Pipeline:
     y = data[TARGET]
-    positives = int(y.sum())
-    scale_pos_weight = (len(y) - positives) / max(positives, 1)
     pipeline = build_pipeline(
         n_estimators=n_estimators,
         max_depth=max_depth,
         learning_rate=settings.learning_rate,
-        scale_pos_weight=scale_pos_weight,
+        # No class reweighting: the output must stay a calibrated PD.
+        scale_pos_weight=1.0,
         seed=settings.seed,
     )
     fit_params = {}

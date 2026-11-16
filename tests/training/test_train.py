@@ -13,6 +13,11 @@ def test_train_model_on_small_lake(small_settings, small_window):
     assert len(r.reference) == 500 and "probability_default" in r.reference
 
 
+def test_predicted_pd_is_calibrated(small_settings, small_window):
+    r = train_model(small_settings, small_window)
+    assert abs(r.oot_metrics.calibration_ratio - 1) <= small_settings.calibration_tolerance
+
+
 def test_hpo_selection_never_sees_oot(small_settings, small_window, monkeypatch):
     fitted_months: list[pd.Series] = []
     original_fit = Pipeline.fit
