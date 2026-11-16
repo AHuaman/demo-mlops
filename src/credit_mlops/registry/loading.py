@@ -1,7 +1,5 @@
 """Load the champion model from the MLflow registry (light imports: the API image uses this)."""
 
-import urllib.error
-import urllib.request
 from dataclasses import dataclass
 
 import mlflow
@@ -9,10 +7,9 @@ import mlflow.pyfunc
 from mlflow import MlflowClient
 from mlflow.exceptions import MlflowException
 
+from credit_mlops.registry.health import unreachable_reason
 from credit_mlops.registry.logging import ModelRef
 from credit_mlops.settings import Settings
-
-HEALTH_TIMEOUT_SECONDS = 3
 
 _MISSING_CODES = {"INVALID_PARAMETER_VALUE", "RESOURCE_DOES_NOT_EXIST"}
 
@@ -43,16 +40,12 @@ def alias_version(client: MlflowClient, name: str, alias: str) -> str | None:
 
 def _check_server_reachable(uri: str) -> None:
     """Fail fast: MLflow's own retry backoff on a dead server takes minutes."""
-    if not uri.startswith(("http://", "https://")):
-        return
-    try:
-        with urllib.request.urlopen(f"{uri.rstrip('/')}/health", timeout=HEALTH_TIMEOUT_SECONDS):
-            pass
-    except (OSError, ValueError) as error:  # URLError and timeouts are OSError
+    reason = unreachable_reason(uri)
+    if reason is not None:
         raise ModelUnavailableError(
-            f"MLflow server at {uri} is unreachable ({error}); "
+            f"MLflow server at {uri} is unreachable ({reason}); "
             "start it with: credit-mlops mlflow-server"
-        ) from error
+        )
 
 
 def _is_http(uri: str) -> bool:

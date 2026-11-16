@@ -281,3 +281,16 @@ def serve_flow_command() -> None:
     from credit_mlops.flows import monthly_cycle
 
     monthly_cycle.serve(name="monthly-cycle", cron="0 6 1 * *")
+
+
+@app.command()
+def doctor() -> None:
+    """Check this machine before the session (exit 1 if a required check fails)."""
+    from credit_mlops.doctor import run_checks
+
+    checks = run_checks(Settings())
+    for check in checks:
+        symbol = "✓" if check.ok else ("✗" if check.required else "!")
+        typer.echo(f"{symbol} {check.name}: {check.detail}")
+    if any(c.required and not c.ok for c in checks):
+        raise typer.Exit(code=1)
