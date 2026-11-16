@@ -13,6 +13,7 @@ from credit_mlops.simulation.config import (
 from credit_mlops.simulation.generator import simulate
 
 SHOCK = date(2023, 7, 1)
+LAST_MATURED = date(2024, 12, 1)
 
 
 @pytest.fixture(scope="module")
@@ -22,7 +23,8 @@ def lake():
 
 def _default_rate_by(lake, region, before=None, after=None):
     joined = lake.applications.merge(lake.outcomes, on="loan_id")
-    joined = joined[joined["region"] == region]
+    # Only cohorts matured by the lake end (2025-12): later ones have censored outcomes.
+    joined = joined[(joined["region"] == region) & (joined["origination_month"] <= LAST_MATURED)]
     if before is not None:
         joined = joined[joined["origination_month"] < before]
     if after is not None:

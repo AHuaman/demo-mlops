@@ -182,14 +182,24 @@ def _apply_incidents(applications: pd.DataFrame, incidents: IncidentConfig) -> p
     return applications
 
 
+def _censor_outcomes(outcomes: pd.DataFrame, lake_end: date) -> pd.DataFrame:
+    """Null out defaults dated after the lake's last day: they are not yet known on that date."""
+    first_unknown = add_months(lake_end, 1)
+    unknown = outcomes["default_date"].map(lambda d: d is not None and d >= first_unknown)
+    outcomes = outcomes.copy()
+    outcomes.loc[unknown, "default_date"] = None
+    return outcomes
+
+
 def simulate(cfg: SimulationConfig) -> Lake:
     """Generate the whole lake, then inject `cfg.incidents` into the recorded features.
 
+    Outcomes only contain defaults observed by the end of `cfg.end`'s month.
     Incidents never touch outcomes: they simulate data-quality failures, not real risk changes.
     """
     parts = [_generate_month(cfg, m) for m in month_range(cfg.start, cfg.end)]
     applications = pd.concat([a for a, _ in parts], ignore_index=True)
-    outcomes = pd.concat([o for _, o in parts], ignore_index=True)
+    outcomes = _censor_outcomes(pd.concat([o for _, o in parts], ignore_index=True), cfg.end)
     applications = _apply_incidents(applications, cfg.incidents)
     return Lake(applications=applications, outcomes=outcomes)
 
