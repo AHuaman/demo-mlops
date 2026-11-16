@@ -32,8 +32,12 @@ def alias_version(client: MlflowClient, name: str, alias: str) -> str | None:
         return str(client.get_model_version_by_alias(name, alias).version)
     except MlflowException as error:
         # MLflow 3.18 reports a missing alias as INVALID_PARAMETER_VALUE "... not found"
-        # (SQLite and REST server alike); anything else is a real failure, not "absent".
-        if "not found" in str(error) and error.error_code in _MISSING_CODES:
+        # (SQLite and REST server alike); Unity Catalog as RESOURCE_DOES_NOT_EXIST
+        # "... does not exist". Anything else is a real failure, not "absent".
+        message = str(error)
+        if error.error_code in _MISSING_CODES and (
+            "not found" in message or "does not exist" in message
+        ):
             return None
         raise
 

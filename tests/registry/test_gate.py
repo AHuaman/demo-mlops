@@ -2,8 +2,9 @@ import mlflow
 import pytest
 from mlflow import MlflowClient
 from mlflow.exceptions import MlflowException
+from mlflow.protos.databricks_pb2 import RESOURCE_DOES_NOT_EXIST
 
-from credit_mlops.registry.gate import decide, promote, rollback
+from credit_mlops.registry.gate import alias_version, decide, promote, rollback
 from credit_mlops.registry.logging import log_and_register
 from credit_mlops.settings import Settings
 from credit_mlops.training.evaluate import EvalMetrics, SegmentMetrics
@@ -147,3 +148,15 @@ def test_lookup_error_is_not_treated_as_missing_alias(registry_settings, monkeyp
     monkeypatch.setattr(MlflowClient, "get_model_version_by_alias", boom)
     with pytest.raises(MlflowException, match="connection reset"):
         promote(registry_settings)
+
+
+def test_unity_catalog_missing_alias_is_absent(monkeypatch):
+    # Unity Catalog words a missing alias differently from the MLflow server.
+    def missing(self, name, alias):
+        raise MlflowException(
+            f"Registered Model Alias '{alias}' does not exist.",
+            error_code=RESOURCE_DOES_NOT_EXIST,
+        )
+
+    monkeypatch.setattr(MlflowClient, "get_model_version_by_alias", missing)
+    assert alias_version(MlflowClient(), "workspace.default.m", "champion") is None
