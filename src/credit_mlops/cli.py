@@ -83,3 +83,61 @@ def simulate_command(
     )
     applied = ", ".join(sorted(i.value for i in chosen)) or "none"
     typer.echo(f"Incidents applied: {applied}")
+
+
+@app.command("train")
+def train_command(
+    as_of: Annotated[
+        str | None, typer.Option("--as-of", help="Reference month as YYYY-MM (with --rolled).")
+    ] = None,
+    rolled: Annotated[
+        bool, typer.Option("--rolled", help="Use a rolled window ending at --as-of.")
+    ] = False,
+) -> None:
+    """Train, log to MLflow and register the model as the `challenger`."""
+    if rolled != (as_of is not None):
+        typer.echo("Pass both --as-of and --rolled, or neither for the default window.")
+        raise typer.Exit(code=2)
+
+    # Imported here so the CLI stays usable without the `train` extra for other commands.
+    from pathlib import Path
+
+    from credit_mlops.months import parse_month
+    from credit_mlops.registry.logging import log_and_register
+    from credit_mlops.settings import DEFAULT_WINDOW, TrainingWindow
+    from credit_mlops.training.train import train_model
+
+    settings = Settings()
+    if as_of is None:
+        window = DEFAULT_WINDOW
+    else:
+        window = TrainingWindow.rolled(
+            parse_month(as_of), half_life_months=settings.retrain_half_life_months
+        )
+    ref = log_and_register(settings, train_model(settings, window), repo_root=Path.cwd())
+    typer.echo(ref.model_dump_json())
+
+
+@app.command("mlflow-server")
+def mlflow_server_command() -> None:
+    """Run a local MLflow tracking server (SQLite backend, proxied artifacts)."""
+    import subprocess
+    import sys
+
+    command = [
+        sys.executable,
+        "-m",
+        "mlflow",
+        "server",
+        "--backend-store-uri",
+        "sqlite:///mlflow.db",
+        "--artifacts-destination",
+        "./mlartifacts",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5000",
+        "--allowed-hosts",
+        "localhost:*,127.0.0.1:*,host.docker.internal:*",
+    ]
+    raise typer.Exit(code=subprocess.run(command).returncode)

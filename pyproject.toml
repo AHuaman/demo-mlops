@@ -65,3 +65,9 @@ select = ["E", "F", "I", "UP", "B"]
 markers = ["slow: end-to-end and lab tests (minutes)"]
 addopts = "-m 'not slow'"
 testpaths = ["tests"]
+filterwarnings = [
+    # MLflow 3.18 internals, not our code: SQLAlchemy mapper config and pandas 4 preview.
+    "ignore:The ``noload`` loader strategy is deprecated:sqlalchemy.exc.SADeprecationWarning",
+    "ignore:Hint. Inferred schema contains integer column:UserWarning",
+    "ignore:Operation with range is deprecated:pandas.errors.Pandas4Warning",
+]

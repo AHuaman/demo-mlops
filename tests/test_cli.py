@@ -72,3 +72,30 @@ def test_validate_reports_missing_month(tmp_path, monkeypatch):
     result = CliRunner().invoke(app, ["validate", "--month", "2025-03"])
     assert result.exit_code == 1
     assert "2025-03" in result.stdout
+
+
+def test_train_requires_as_of_and_rolled_together():
+    for args in (["train", "--rolled"], ["train", "--as-of", "2023-01"]):
+        result = CliRunner().invoke(app, args)
+        assert result.exit_code == 2
+        assert "both --as-of and --rolled" in result.output
+
+
+def test_mlflow_server_launches_mlflow_with_expected_arguments(monkeypatch):
+    import subprocess
+    import sys
+
+    captured = {}
+
+    def fake_run(command):
+        captured["command"] = command
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    result = CliRunner().invoke(app, ["mlflow-server"])
+    assert result.exit_code == 0
+    command = captured["command"]
+    assert command[:4] == [sys.executable, "-m", "mlflow", "server"]
+    assert command[command.index("--backend-store-uri") + 1] == "sqlite:///mlflow.db"
+    assert command[command.index("--artifacts-destination") + 1] == "./mlartifacts"
+    assert "--allowed-hosts" in command
