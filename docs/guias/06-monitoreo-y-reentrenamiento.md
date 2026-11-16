@@ -415,7 +415,11 @@ To trigger a run for this flow, use the following command:
 You can also run your flow via the Prefect UI: http://127.0.0.1:4200/deployments/deployment/0aa0e602-dfd0-412e-84fe-de2d4d8906f5
 ```
 
-En la interfaz aparece el deployment `monthly-cycle` con el cron `0 6 1 * *`. No lances una ejecución. El mes anterior a hoy no existe en el lago simulado, que termina en 2025-12. Detén `serve-flow` con `Ctrl+C`, detén el servidor de Prefect con `Ctrl+C` en la tercera terminal y quita la configuración:
+En la interfaz aparece el deployment `monthly-cycle` con el cron `0 6 1 * *`.
+
+Este deployment nunca reentrena. Cada ejecución programada empieza con la racha de alertas en 0, porque `monthly_cycle` recibe la racha de quien lo llama y aquí nadie se la pasa. Así nunca llega a 6. `simulate_production` sí pasa la racha de un mes al siguiente. En producción tendrías que guardar la racha entre ejecuciones, por ejemplo en MLflow o en una tabla, y leerla al empezar cada mes.
+
+No lances una ejecución. El mes anterior a hoy no existe en el lago simulado, que termina en 2025-12. Detén `serve-flow` con `Ctrl+C`, detén el servidor de Prefect con `Ctrl+C` en la tercera terminal y quita la configuración:
 
 ```bash
 uv run prefect config unset PREFECT_API_URL

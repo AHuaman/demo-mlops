@@ -74,7 +74,7 @@ Opcional: un job de quality gate y uno que construye la imagen en CI; un ciclo m
 | Drift de la predicción (PSI de la salida del modelo) | El mismo reporte | `prediction_psi` |
 | Si las etiquetas llegan tarde, el monitoreo de performance usa solo etiquetas maduras, y mientras tanto vigilas el drift | La regla de madurez escrita en tu guía o README | guía 06, paso 3 |
 | Un ejercicio de diagnóstico: al menos un incidente de datos inyectado y el detector que lo atrapa | El reporte del incidente | laboratorio de la guía 06 |
-| El ciclo reentrenar, gate y cambio de alias funciona de punta a punta, y una alerta aislada no basta para reentrenar | Una corrida con alerta, reentrenamiento y decisión del gate | `flows.py`, `notebooks/06_laboratorio_monitoreo.ipynb` |
+| El ciclo reentrenar, gate y cambio de alias funciona de punta a punta, y una alerta aislada no basta para reentrenar | Una corrida con alerta, reentrenamiento y decisión del gate. Si programas el ciclo, la racha de alertas debe guardarse entre ejecuciones | `flows.py` (`simulate_production` pasa la racha; `serve-flow` empieza cada ejecución en 0 y no reentrena), `notebooks/06_laboratorio_monitoreo.ipynb` |
 | Si haces muchas pruebas estadísticas por período (por segmento, por métrica), tus umbrales de alerta lo tienen en cuenta | El umbral y su justificación | `calibration_min_z`, guía 06 |
 
 ## Nube

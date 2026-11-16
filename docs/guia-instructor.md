@@ -22,6 +22,7 @@ El contenido central cabe en 3 h 50 min, con una pausa de 10 minutos. La última
 ## Antes de la clase
 
 - [ ] Fusiona el trabajo en `main` de `AHuaman/demo-mlops`. "Use this template" copia solo la rama por defecto.
+- [ ] Haz público el repositorio (**Settings**, **General**, **Danger Zone**, **Change visibility**) o da acceso de lectura a los estudiantes. Hoy es privado. Una plantilla privada solo la ve quien tiene acceso, y lo mismo pasa con los enlaces a las corridas de CI de la guía 05 y de esta guía.
 - [ ] Marca `AHuaman/demo-mlops` como repositorio plantilla en GitHub (**Settings**, **General**, casilla **Template repository**). Sin esto los estudiantes no ven el botón **Use this template** (guía 00, paso 5).
 - [ ] Envía los primers (`docs/primers/`) y `docs/guias/00-preparacion.md` con tiempo para que preparen sus laptops.
 - [ ] Pide a cada estudiante que ejecute `uv run credit-mlops doctor` y te mande la salida. Ninguna línea debe tener `✗`.
