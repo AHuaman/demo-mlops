@@ -1,6 +1,10 @@
+import shutil
+
 import pandas as pd
+import pytest
 from sklearn.pipeline import Pipeline
 
+from credit_mlops.data.contract import ContractViolation
 from credit_mlops.schema import CATEGORICAL_FEATURES
 from credit_mlops.training.train import train_model
 
@@ -64,3 +68,18 @@ def test_recency_weights_reach_every_fit(small_settings, small_window, monkeypat
     window = small_window.model_copy(update={"half_life_months": 3.0})
     train_model(small_settings, window)
     assert seen == [1.0, 1.0, 1.0]
+
+
+def test_train_model_blocks_on_contract_violation(small_settings, small_window, tmp_path):
+    """The contract runs before training: one bad month in the train window stops it."""
+    data_dir = tmp_path / "data"
+    shutil.copytree(small_settings.data_dir, data_dir)
+    path = data_dir / "raw" / "applications" / "2019-09.parquet"
+    bad = pd.read_parquet(path)
+    bad["monthly_income_pen"] = bad["monthly_income_pen"] / 1000
+    bad.to_parquet(path)
+    settings = small_settings.model_copy(update={"data_dir": data_dir})
+
+    with pytest.raises(ContractViolation, match="2019-09") as raised:
+        train_model(settings, small_window)
+    assert any("monthly_income_pen" in m for m in raised.value.result.failed)

@@ -7,14 +7,19 @@ import mlflow.pyfunc
 from mlflow import MlflowClient
 from mlflow.exceptions import MlflowException
 
-from credit_mlops.registry.health import unreachable_reason
+from credit_mlops.registry.health import (
+    MLFLOW_SERVER_HINT,
+    MlflowUnavailableError,
+    is_http,
+    require_reachable,
+)
 from credit_mlops.registry.logging import ModelRef
 from credit_mlops.settings import Settings
 
 _MISSING_CODES = {"INVALID_PARAMETER_VALUE", "RESOURCE_DOES_NOT_EXIST"}
 
 
-class ModelUnavailableError(RuntimeError):
+class ModelUnavailableError(MlflowUnavailableError):
     """The registry cannot be reached or holds no model under the requested alias."""
 
 
@@ -43,17 +48,7 @@ def alias_version(client: MlflowClient, name: str, alias: str) -> str | None:
 
 
 def _check_server_reachable(uri: str) -> None:
-    """Fail fast: MLflow's own retry backoff on a dead server takes minutes."""
-    reason = unreachable_reason(uri)
-    if reason is not None:
-        raise ModelUnavailableError(
-            f"MLflow server at {uri} is unreachable ({reason}); "
-            "start it with: credit-mlops mlflow-server"
-        )
-
-
-def _is_http(uri: str) -> bool:
-    return uri.startswith(("http://", "https://"))
+    require_reachable(uri, ModelUnavailableError)
 
 
 def load_champion(settings: Settings, alias: str = "champion") -> LoadedModel:
@@ -64,13 +59,13 @@ def load_champion(settings: Settings, alias: str = "champion") -> LoadedModel:
         mlflow.set_registry_uri(settings.mlflow_registry_uri)
     client = MlflowClient(uri, settings.mlflow_registry_uri)
     name = settings.registered_model_name
-    hint = "; start it with: credit-mlops mlflow-server" if _is_http(uri) else ""
+    hint = f"; start it with: {MLFLOW_SERVER_HINT}" if is_http(uri) else ""
     try:
         version = alias_version(client, name, alias)
         if version is None:
             raise ModelUnavailableError(
                 f"no @{alias} model for '{name}' in {uri}; train and promote one with: "
-                "credit-mlops train && credit-mlops promote"
+                "uv run credit-mlops train, then uv run credit-mlops promote"
             )
         # Load by the resolved version so ref.version and the model cannot disagree.
         run_id = client.get_model_version(name, version).run_id

@@ -115,3 +115,31 @@ def test_serve_api_runs_uvicorn_with_defaults_and_overrides(monkeypatch):
         ((target,), {"host": "127.0.0.1", "port": 8000}),
         ((target,), {"host": "0.0.0.0", "port": 9000}),
     ]
+
+
+def test_train_exits_1_naming_the_month_when_the_contract_fails(tmp_path, monkeypatch):
+    import pandas as pd
+
+    monkeypatch.setenv("CREDIT_MLOPS_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("CREDIT_MLOPS_MLFLOW_TRACKING_URI", f"sqlite:///{tmp_path.as_posix()}/m.db")
+    simulated = CliRunner().invoke(app, ["simulate", "--loans-per-month", "20"])
+    assert simulated.exit_code == 0, simulated.output
+    path = tmp_path / "raw" / "applications" / "2021-05.parquet"
+    bad = pd.read_parquet(path)
+    bad["monthly_income_pen"] = bad["monthly_income_pen"] / 1000
+    bad.to_parquet(path)
+
+    result = CliRunner().invoke(app, ["train"])
+    assert result.exit_code == 1, result.output
+    assert "2021-05" in result.output and "monthly_income_pen" in result.output
+    assert "Traceback" not in result.output
+
+
+def test_train_promote_rollback_fail_fast_when_mlflow_is_down(tmp_path, monkeypatch):
+    monkeypatch.setenv("CREDIT_MLOPS_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("CREDIT_MLOPS_MLFLOW_TRACKING_URI", "http://127.0.0.1:1")
+    for command in ("train", "promote", "rollback"):
+        result = CliRunner().invoke(app, [command])
+        assert result.exit_code == 1, (command, result.output)
+        assert "http://127.0.0.1:1" in result.output
+        assert "uv run credit-mlops mlflow-server" in result.output

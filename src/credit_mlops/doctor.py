@@ -152,3 +152,16 @@ def run_checks(settings: Settings) -> list[Check]:
         check_docker(),
         check_mlflow(settings),
     ]
+
+
+def output_encoding() -> str | None:
+    return sys.stdout.encoding
+
+
+def status_symbols(encoding: str | None) -> tuple[str, str, str]:
+    """Markers for ok / failed / optional-missing; ASCII when the console cannot encode ✓ ✗."""
+    try:
+        "✓✗".encode(encoding or "ascii")
+    except (UnicodeEncodeError, LookupError):
+        return ("OK", "X", "!")
+    return ("✓", "✗", "!")

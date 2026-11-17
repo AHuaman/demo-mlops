@@ -72,6 +72,17 @@ def client_without_model(settings):
         yield c
 
 
+def test_unexpected_loader_error_keeps_the_service_up_but_not_ready(settings):
+    def broken(s):
+        raise KeyError("threshold")
+
+    with TestClient(create_app(settings, loader=broken)) as c:
+        assert c.get("/health").status_code == 200
+        ready = c.get("/ready")
+    assert ready.status_code == 503
+    assert "cannot load model: KeyError('threshold')" in ready.json()["detail"]
+
+
 def test_health_always_ok(client_without_model):
     response = client_without_model.get("/health")
     assert response.status_code == 200 and response.json() == {"status": "ok"}

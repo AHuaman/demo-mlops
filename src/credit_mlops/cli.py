@@ -102,7 +102,9 @@ def train_command(
     # Imported here so the CLI stays usable without the `train` extra for other commands.
     from pathlib import Path
 
+    from credit_mlops.data.contract import ContractViolation
     from credit_mlops.months import parse_month
+    from credit_mlops.registry.health import MlflowUnavailableError, require_reachable
     from credit_mlops.registry.logging import log_and_register
     from credit_mlops.settings import DEFAULT_WINDOW, TrainingWindow
     from credit_mlops.training.train import train_model
@@ -114,7 +116,14 @@ def train_command(
         window = TrainingWindow.rolled(
             parse_month(as_of), half_life_months=settings.retrain_half_life_months
         )
-    ref = log_and_register(settings, train_model(settings, window), repo_root=Path.cwd())
+    try:
+        # Check the server first: training takes minutes and logging needs MLflow at the end.
+        require_reachable(settings.mlflow_tracking_uri)
+        result = train_model(settings, window)
+        ref = log_and_register(settings, result, repo_root=Path.cwd())
+    except (ContractViolation, MlflowUnavailableError, FileNotFoundError) as error:
+        typer.echo(str(error))
+        raise typer.Exit(code=1) from error
     typer.echo(ref.model_dump_json())
 
 
@@ -150,15 +159,17 @@ def promote_command() -> None:
     from mlflow.exceptions import MlflowException
 
     from credit_mlops.registry.gate import alias_version, promote
+    from credit_mlops.registry.health import MlflowUnavailableError, require_reachable
 
     settings = Settings()
-    client = MlflowClient(settings.mlflow_tracking_uri, settings.mlflow_registry_uri)
     try:
+        require_reachable(settings.mlflow_tracking_uri)
+        client = MlflowClient(settings.mlflow_tracking_uri, settings.mlflow_registry_uri)
         name = settings.registered_model_name
         challenger = alias_version(client, name, "challenger")
         champion = alias_version(client, name, "champion")
         decision = promote(settings)
-    except (ValueError, MlflowException) as error:
+    except (ValueError, MlflowException, MlflowUnavailableError) as error:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
     previous = f"v{champion}" if champion else "none"
@@ -176,11 +187,12 @@ def rollback_command() -> None:
     from mlflow.exceptions import MlflowException
 
     from credit_mlops.registry.gate import rollback
+    from credit_mlops.registry.health import MlflowUnavailableError
 
     settings = Settings()
     try:
         ref = rollback(settings)
-    except (ValueError, MlflowException) as error:
+    except (ValueError, MlflowException, MlflowUnavailableError) as error:
         typer.echo(str(error))
         raise typer.Exit(code=1) from error
     typer.echo(f"champion is now {ref.name} v{ref.version}")
@@ -274,7 +286,7 @@ def simulate_production_command(
 
 @app.command("serve-flow")
 def serve_flow_command() -> None:
-    """Serve `monthly_cycle` on a cron (06:00 on day 1) for the previous month.
+    """Serve `monthly_cycle` on a cron (06:00 UTC on day 1) for the previous month.
 
     In served mode every run starts with an alert streak of 0.
     """
@@ -286,11 +298,12 @@ def serve_flow_command() -> None:
 @app.command()
 def doctor() -> None:
     """Check this machine before the session (exit 1 if a required check fails)."""
-    from credit_mlops.doctor import run_checks
+    from credit_mlops.doctor import output_encoding, run_checks, status_symbols
 
+    ok_mark, failed_mark, optional_mark = status_symbols(output_encoding())
     checks = run_checks(Settings())
     for check in checks:
-        symbol = "✓" if check.ok else ("✗" if check.required else "!")
+        symbol = ok_mark if check.ok else (failed_mark if check.required else optional_mark)
         typer.echo(f"{symbol} {check.name}: {check.detail}")
     if any(c.required and not c.ok for c in checks):
         raise typer.Exit(code=1)

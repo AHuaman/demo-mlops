@@ -41,6 +41,7 @@ class ContractViolation(Exception):
 
 
 def build_expectation_suite() -> gx.ExpectationSuite:
+    gx.get_context(mode="ephemeral")  # expectations need a context to be created standalone
     expect = gx.expectations
     suite = gx.ExpectationSuite(name="credit_applications_contract")
     suite.add_expectation(expect.ExpectTableRowCountToBeBetween(min_value=MIN_ROWS))

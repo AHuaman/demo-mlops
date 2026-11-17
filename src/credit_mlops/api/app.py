@@ -46,6 +46,8 @@ def create_app(
             app.state.champion = loader(settings)
         except ModelUnavailableError as error:
             app.state.error = str(error)
+        except Exception as error:  # a bad model must leave /health up and /ready at 503
+            app.state.error = f"cannot load model: {error!r}"
         yield
 
     app = FastAPI(title="credit-mlops scoring API", lifespan=lifespan)

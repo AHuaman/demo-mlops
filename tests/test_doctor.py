@@ -107,3 +107,17 @@ def test_mlflow_down_with_free_port_is_ok_and_busy_port_warns(healthy, monkeypat
     assert _by_name(doctor.run_checks(Settings()), "MLflow").ok
     monkeypatch.setattr(doctor, "_port_is_free", lambda port: False)
     assert not _by_name(doctor.run_checks(Settings()), "MLflow").ok
+
+
+def test_status_symbols_fall_back_to_ascii_when_the_encoding_cannot_encode_them():
+    assert doctor.status_symbols("utf-8") == ("✓", "✗", "!")
+    assert doctor.status_symbols("cp1252") == ("OK", "X", "!")
+    assert doctor.status_symbols(None) == ("OK", "X", "!")
+
+
+def test_doctor_prints_ascii_markers_on_a_cp1252_stdout(healthy, monkeypatch):
+    monkeypatch.setattr(doctor, "output_encoding", lambda: "cp1252")
+    result = CliRunner().invoke(app, ["doctor"])
+    assert result.exit_code == 0, result.output
+    assert "OK " in result.output
+    assert "✓" not in result.output

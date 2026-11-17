@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 
 from credit_mlops.data.lake import attach_labels, load_applications, load_outcomes
 from credit_mlops.features import build_pipeline
-from credit_mlops.months import month_range
+from credit_mlops.months import month_label, month_range
 from credit_mlops.schema import FEATURES, SEGMENT_COLUMN, TARGET
 from credit_mlops.settings import Settings, TrainingWindow
 from credit_mlops.training.evaluate import EvalMetrics, evaluate, recency_weights
@@ -49,14 +49,30 @@ def _fit(
 
 
 def train_model(settings: Settings, window: TrainingWindow) -> TrainResult:
+    # Lazy: great_expectations must not load with the API, which imports this module.
+    from credit_mlops.data.contract import (
+        ContractResult,
+        ContractViolation,
+        validate_applications,
+    )
+
     outcomes = load_outcomes(settings)
+    failures: list[str] = []
 
     def load(start, end) -> pd.DataFrame:
         apps = load_applications(settings, month_range(start, end))
+        for month in month_range(start, end):
+            result = validate_applications(apps[apps["origination_month"] == month])
+            failures.extend(f"{month_label(month)}: {m}" for m in result.failed)
         return attach_labels(apps, outcomes, window.as_of, window.label_window_months)
 
     train = load(window.train_start, window.train_end)
     oot = load(window.oot_start, window.oot_end)
+
+    if failures:
+        raise ContractViolation(
+            ContractResult(success=False, n_rows=len(train) + len(oot), failed=failures)
+        )
 
     fit_part = train[train["origination_month"] < window.validation_start]
     valid_part = train[train["origination_month"] >= window.validation_start]
