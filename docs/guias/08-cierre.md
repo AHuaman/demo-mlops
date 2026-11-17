@@ -30,7 +30,7 @@ Las guías repiten tres reglas:
 El [checklist del capstone](../checklist-capstone.md) lista los ítems obligatorios por área (código, datos, entrenamiento, MLflow, servir, automatización, monitoreo) y los opcionales. Úsalo así:
 
 1. **Elige el problema y responde las condiciones.** Algunos ítems empiezan con "Si...". ¿Tus datos tienen una dimensión de tiempo? ¿Las etiquetas llegan tarde? ¿Las salidas del modelo se usan como probabilidades? ¿Qué segmento importa en tu dominio? Escribe las respuestas en el README de tu capstone. Si una condición no aplica, dilo en una línea.
-2. **Parte de este repositorio.** Crea tu capstone desde la plantilla, como hiciste en la preparación, y reemplaza en este orden:
+2. **Parte de este repositorio.** Crea tu capstone desde la plantilla, como hiciste en la preparación, y reemplaza en este orden. Las rutas siguientes cuelgan de `src/credit_mlops/`:
    - `schema.py`: tus variables, sus tipos y sus límites. El contrato de datos y la validación de la API salen de aquí.
    - `simulation/`: cámbialo por la carga de tus datos. Mantén la misma salida (un archivo por período) si tu problema tiene tiempo.
    - `settings.py` y `config/settings.toml`: la ventana de entrenamiento, la grilla del HPO, el umbral de decisión y los umbrales de monitoreo.

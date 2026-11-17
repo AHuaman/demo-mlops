@@ -1,7 +1,7 @@
 [project]
 name = "credit-mlops"
 version = "0.1.0"
-description = "Add your description here"
+description = "Reference MLOps repo: a credit-default model with data contract, MLflow registry, API, CI and monitoring."
 authors = [
     { name = "AHuaman", email = "30458204+AHuaman@users.noreply.github.com" }
 ]

@@ -321,7 +321,7 @@ En la interfaz puedes marcar las dos corridas `train-2023-01` en la tabla de **R
 
 ## Paso 10. Mira al gate rechazar un modelo
 
-La versión 2 es ahora `@challenger` y es idéntica al champion. Con las reglas por defecto pasaría, porque la ganancia mínima de AUC es 0.0. Exige una ganancia de 0.01 con un `.env`. Crea el archivo `.env` en la raíz del repositorio con tu editor, con esta única línea:
+La versión 2 es ahora `@challenger` y es idéntica al champion. Con las reglas por defecto pasaría, porque la ganancia mínima de AUC es 0.0. Exige una ganancia de 0.01 con un `.env`. Copia la plantilla (`cp .env.example .env` en macOS y PowerShell) y reemplaza su contenido por esta única línea. Si usas el Bloc de notas, elige **Guardar como** y **Todos los archivos**, o Windows guardará `.env.txt`:
 
 ```text
 CREDIT_MLOPS_GATE_MIN_AUC_GAIN=0.01
@@ -366,7 +366,7 @@ No promuevas la versión 2. La guía 04 sirve la versión 1.
 
 ## Si algo falla
 
-**`credit-mlops train` se queda varios minutos sin imprimir nada y termina con `MlflowException: API request to http://127.0.0.1:5000/api/2.0/mlflow/experiments/get-by-name failed ... Connection refused`.** El servidor de MLflow no está corriendo. Pasó durante la preparación de esta guía. MLflow reintenta la conexión durante unos 4 minutos antes de rendirse. Detén el comando con `Ctrl+C`, inicia el servidor en otra terminal (paso 1) y vuelve a entrenar. `uv run credit-mlops doctor` te dice si el servidor responde.
+**`train`, `promote` o `rollback` terminan al instante con `MLflow server at http://127.0.0.1:5000 is unreachable (<urlopen error [Errno 61] Connection refused>); start it with: uv run credit-mlops mlflow-server`.** El servidor de MLflow no está corriendo. Inícialo en otra terminal (paso 1) y repite el comando. `uv run credit-mlops doctor` también te dice si el servidor responde. En Windows el texto entre paréntesis cambia, pero el resto es igual.
 
 **`promote` responde `version 1 is already champion`** (código de salida 1). No hay un challenger nuevo que evaluar, porque `@challenger` apunta a la misma versión que `@champion`. Entrena primero con `uv run credit-mlops train`.
 

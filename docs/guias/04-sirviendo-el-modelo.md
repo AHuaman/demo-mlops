@@ -207,7 +207,7 @@ curl -i http://localhost:8000/ready
 ```text
 HTTP/1.1 503 Service Unavailable
 ...
-{"detail":"MLflow server at http://127.0.0.1:5000 is unreachable (<urlopen error [Errno 61] Connection refused>); start it with: credit-mlops mlflow-server"}
+{"detail":"MLflow server at http://127.0.0.1:5000 is unreachable (<urlopen error [Errno 61] Connection refused>); start it with: uv run credit-mlops mlflow-server"}
 ```
 
 (salida recortada: quitamos las cabeceras `date`, `server`, `content-length` y `content-type`). En Windows el mensaje de error dice `WinError 10061` en vez de `Errno 61`.
@@ -221,7 +221,7 @@ curl http://localhost:8000/ready
 ```
 
 ```json
-{"detail":"MLflow server at http://127.0.0.1:5000 is unreachable (<urlopen error [Errno 61] Connection refused>); start it with: credit-mlops mlflow-server"}
+{"detail":"MLflow server at http://127.0.0.1:5000 is unreachable (<urlopen error [Errno 61] Connection refused>); start it with: uv run credit-mlops mlflow-server"}
 ```
 
 Sigue en 503 aunque MLflow ya responde, porque la API intenta cargar el modelo solo al arrancar y guarda el error de ese momento. Reinicia la API (`Ctrl+C` y `uv run credit-mlops serve-api`) y repite el comando:

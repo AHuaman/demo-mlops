@@ -61,7 +61,7 @@ databricks current-user me --profile <tu-perfil>
 
 (salida recortada). Abre `.env.databricks` en tu editor y reemplaza `<tu-correo>` por ese `userName` y `<tu-perfil>` por el nombre de tu profile, por ejemplo `free`.
 
-`Settings` solo lee `.env` por su cuenta. Para usar otro archivo, `uv run --env-file` carga cada línea como variable de entorno del comando. Así le llegan a `Settings` las variables `CREDIT_MLOPS_*` y al SDK de Databricks las otras dos. La opción funciona igual en macOS y en PowerShell. Comprueba qué ve `Settings`:
+`Settings` solo lee `.env` por su cuenta. Para usar otro archivo, `uv run --env-file` carga cada línea como variable de entorno del comando. Así le llegan a `Settings` las variables `CREDIT_MLOPS_*`, al SDK de Databricks las de autenticación y a MLflow `MLFLOW_DISABLE_TELEMETRY`. La opción funciona igual en macOS y en PowerShell. Comprueba qué ve `Settings`:
 
 ```bash
 uv run --env-file .env.databricks python -c "from credit_mlops.settings import Settings; s = Settings(); print(s.mlflow_tracking_uri, s.mlflow_registry_uri, s.registered_model_name)"
@@ -202,13 +202,13 @@ Lo que no cambia es el ciclo. El gate decide el `@champion` y el endpoint sirve 
 
 **Un archivo aparte.** `.env.databricks` no reemplaza a `.env`. Sin `--env-file`, los comandos siguen usando tu servidor local, y no puedes registrar en Databricks por accidente.
 
-**Una corrección pequeña en el código.** Unity Catalog avisa de un alias que no existe con otro texto que el servidor local de MLflow (ver "Si algo falla"). `alias_version` en `registry/loading.py` ahora reconoce los dos textos. El flujo local no cambió.
+**Una corrección pequeña en el código.** El código del curso ya la incluye. Unity Catalog avisa de un alias que no existe con otro texto que el servidor local de MLflow (ver "Si algo falla"). `alias_version` en `registry/loading.py` reconoce los dos textos. El flujo local no cambió.
 
 ## Si algo falla
 
 **`train` muestra `WARNING mlflow.utils.databricks_utils: Failed to create databricks SDK workspace client, error: ValueError('default auth: databricks-cli: cannot get access token: Error: forced token refresh: cache update: exit status 45. ...` y termina con `RestException: 401: Credential was not sent or was of an unsupported type for this API.`** Pasó durante la preparación de esta guía, en macOS, con un `.env.databricks` sin la línea `MLFLOW_DISABLE_TELEMETRY=true`. La telemetría de MLflow pedía un token en otro hilo al mismo tiempo que el entrenamiento. En la Mac del instructor, el CLI guarda los tokens en el llavero de macOS, y falla con ese `exit status 45` cuando dos procesos lo refrescan a la vez. MLflow sigue sin credenciales y el workspace responde 401. Agrega la línea y repite. La corrida fallida queda en el experimento con estado `FAILED`; no hace falta borrarla.
 
-**`promote` responde `RESOURCE_DOES_NOT_EXIST: Registered Model Alias 'champion' does not exist.`** Pasó durante la preparación de esta guía, antes de la corrección de `registry/loading.py`. Tu copia del repositorio es anterior a esa corrección. Actualízala y repite.
+**`promote` responde `RESOURCE_DOES_NOT_EXIST: Registered Model Alias 'champion' does not exist.`** Si ves este error, tu copia del repositorio es anterior a la corrección de `registry/loading.py` (ver "Por qué así"). Actualízala y repite.
 
 ## Para el instructor
 

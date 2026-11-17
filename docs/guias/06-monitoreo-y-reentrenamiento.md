@@ -399,7 +399,7 @@ uv run prefect flow-run ls
 
 Los ids y los nombres son aleatorios. Hay una ejecución de `simulate-production` y una de `monthly-cycle` por mes, como subflujos. Ábrelas en http://127.0.0.1:4200 para ver cada tarea con su duración y su estado.
 
-Para programar el ciclo, `serve-flow` publica `monthly_cycle` con un cron que corre a las 06:00 del día 1 de cada mes y procesa el mes anterior:
+Para programar el ciclo, `serve-flow` publica `monthly_cycle` con un cron que corre a las 06:00 UTC del día 1 de cada mes y procesa el mes anterior:
 
 ```bash
 uv run credit-mlops serve-flow
@@ -461,9 +461,9 @@ Una diferencia práctica es que un flujo de Prefect es una función de Python qu
 
 ## Si algo falla
 
-**`monitor` termina con `No batch predictions for 2024-08 at data/predictions/batch/2024-08.parquet; run: credit-mlops score --month 2024-08`.** Pasó durante la preparación de esta guía. El monitoreo necesita las predicciones del mes para calcular el PSI de la predicción. Ejecuta el `score` que sugiere el mensaje y repite.
+**`monitor` termina con `no batch predictions for 2024-08 at data/predictions/batch/2024-08.parquet; run: credit-mlops score --month 2024-08`.** Pasó durante la preparación de esta guía. El monitoreo necesita las predicciones del mes para calcular el PSI de la predicción. Ejecuta el `score` que sugiere el mensaje y repite.
 
-**`monitor` responde `MLflow server at http://127.0.0.1:5000 is unreachable ... start it with: credit-mlops mlflow-server`.** El servidor de MLflow no está corriendo. Inícialo en la segunda terminal (`uv run credit-mlops mlflow-server`) y repite.
+**`monitor` responde `MLflow server at http://127.0.0.1:5000 is unreachable ... start it with: uv run credit-mlops mlflow-server`.** El servidor de MLflow no está corriendo. Inícialo en la segunda terminal (`uv run credit-mlops mlflow-server`) y repite.
 
 **`simulate-production` termina con `RuntimeError: Failed to reach API at http://127.0.0.1:4200/api/`.** Configuraste `PREFECT_API_URL` y el servidor de Prefect está detenido. Inícialo (`uv run prefect server start`) o quita la configuración con `uv run prefect config unset PREFECT_API_URL`.
 

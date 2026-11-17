@@ -26,13 +26,14 @@ El contenido central cabe en 3 h 50 min, con una pausa de 10 minutos. La última
 - [ ] Marca `AHuaman/demo-mlops` como repositorio plantilla en GitHub (**Settings**, **General**, casilla **Template repository**). Sin esto los estudiantes no ven el botón **Use this template** (guía 00, paso 5).
 - [ ] Envía los primers (`docs/primers/`) y `docs/guias/00-preparacion.md` con tiempo para que preparen sus laptops.
 - [ ] Pide a cada estudiante que ejecute `uv run credit-mlops doctor` y te mande la salida. Ninguna línea debe tener `✗`.
+- [ ] En una Mac recién configurada, comprueba que el puerto 5000 esté libre. El receptor AirPlay de macOS puede escuchar en el 5000 (**Ajustes del Sistema**, **General**, **AirDrop y Handoff**, desactiva **Receptor AirPlay**), y `doctor` marcará entonces el puerto como ocupado.
 - [ ] Recuerda a quienes usan macOS que ejecuten `brew install libomp`. Sin libomp, XGBoost no carga y `doctor` lo marca con `✗`.
 - [ ] En una máquina con Windows, verifica los bloques de PowerShell de las guías y `docker compose up` de la guía 04, que llega a MLflow por `host.docker.internal`. Los bloques de PowerShell no se ejecutaron al escribir las guías.
 - [ ] Confirma los datos de Databricks Free Edition que el primer 04 marca como no confirmados: si piden tarjeta, la forma de la URL del workspace, el valor de la cuota diaria, el nombre del catálogo por defecto y las funciones de MLflow y Unity Catalog incluidas. Confirma también la URL de registro (https://www.databricks.com/learn/free-edition).
 - [ ] Si instalas el CLI de Databricks con Homebrew 6, puede que antes tengas que ejecutar `brew trust --formula databricks/tap/databricks`.
 - [ ] Ensaya el epílogo de Databricks un día distinto al de la clase. La cuota diaria de Free Edition puede agotarse con el ensayo.
 - [ ] Opcional: toma capturas de un check de CI en verde, de la interfaz de Prefect y, en Databricks, del experimento y de la versión 1 con `@champion` (guía 07, paso 6), por si la red falla en clase.
-- [ ] Problema conocido: `credit-mlops train` y `credit-mlops promote` se quedan unos 4 minutos sin responder si el servidor de MLflow no está corriendo, y luego fallan con `Connection refused`. Pide que inicien `uv run credit-mlops mlflow-server` antes de entrenar (guía 03, paso 1).
+- [ ] Problema conocido: si el servidor de MLflow no está corriendo, `credit-mlops train`, `promote` y `rollback` terminan al instante con `MLflow server at http://127.0.0.1:5000 is unreachable ...; start it with: uv run credit-mlops mlflow-server`. Pide que inicien el servidor antes de entrenar (guía 03, paso 1).
 
 ## Comandos por bloque
 
@@ -123,10 +124,10 @@ uv run credit-mlops serve-flow
 | Comando | Tiempo |
 | --- | --- |
 | Corrida completa del laboratorio (`uv run pytest -m slow tests/integration/test_lab.py`: lago 2019-2025, entrenamiento, 36 meses de producción y los dos incidentes) | 29 s (32 s de reloj con el arranque de `uv`) |
-| `uv run pytest -m slow` (laboratorio más `test_flows.py`) | 49 s (52 s de reloj) |
+| `uv run pytest -m slow` (laboratorio, `test_flows.py` y los dos notebooks: 8 pruebas) | 123 s (125 s de reloj) |
 | Notebook `06_laboratorio_monitoreo.ipynb` completo, ejecutado con `jupyter nbconvert --execute` | entre 42 y 52 s, en cinco ejecuciones |
 | `uv run pytest -m slow tests/integration/test_notebooks.py` (los dos notebooks) | 47 s (50 s de reloj) |
-| `uv run pytest` (suite por defecto: 172 pruebas) | 27 s (31 s de reloj) |
+| `uv run pytest` (suite por defecto: 182 pruebas) | 55 s (59 s de reloj) |
 | `uv run credit-mlops score --month 2024-07` | 4 s de reloj |
 | `uv run credit-mlops monitor --month 2024-07` | entre 3 y 6 s de reloj |
 | `uv run credit-mlops simulate-production` de 3 meses, con el servidor temporal de Prefect | 12 s de reloj |

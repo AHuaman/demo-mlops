@@ -131,7 +131,8 @@ uv run credit-mlops --help
 │ serve-api            Serve `@champion` over HTTP with per-prediction explanations.               │
 │ simulate-production  Replay the monthly cycle (validate, score, monitor, retrain) over a range   │
 │                      of months.                                                                  │
-│ serve-flow           Serve `monthly_cycle` on a cron (06:00 on day 1) for the previous month.    │
+│ serve-flow           Serve `monthly_cycle` on a cron (06:00 UTC on day 1) for the previous       │
+│                      month.                                                                      │
 │ doctor               Check this machine before the session (exit 1 if a required check fails).   │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
