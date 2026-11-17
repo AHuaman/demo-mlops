@@ -240,7 +240,7 @@ def monitor_month(settings: Settings, month: date) -> MonitoringReport:
         if not batch_path.exists():
             raise FileNotFoundError(
                 f"no batch predictions for {month_label(month)} at {batch_path}; "
-                f"run: credit-mlops score --month {month_label(month)}"
+                f"run: uv run credit-mlops score --month {month_label(month)}"
             )
         with tempfile.TemporaryDirectory() as tmp:
             local = mlflow.artifacts.download_artifacts(

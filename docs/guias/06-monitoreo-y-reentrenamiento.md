@@ -185,7 +185,7 @@ El notebook `notebooks/06_laboratorio_monitoreo.ipynb` repite el ciclo mensual d
 uv run jupyter notebook notebooks/06_laboratorio_monitoreo.ipynb
 ```
 
-En el menú **Run**, elige **Run All Cells**. En la Mac del instructor, ejecutar el notebook completo tardó entre 42 y 52 segundos. Mientras corre, lee lo que sigue. Los números citados abajo son las salidas del notebook.
+En el menú **Run**, elige **Run All Cells**. En la Mac del instructor, ejecutar el notebook completo tardó entre 52 y 60 segundos. Mientras corre, lee lo que sigue. Los números citados abajo son las salidas del notebook.
 
 ### El estado de cada mes
 
@@ -461,7 +461,7 @@ Una diferencia práctica es que un flujo de Prefect es una función de Python qu
 
 ## Si algo falla
 
-**`monitor` termina con `no batch predictions for 2024-08 at data/predictions/batch/2024-08.parquet; run: credit-mlops score --month 2024-08`.** Pasó durante la preparación de esta guía. El monitoreo necesita las predicciones del mes para calcular el PSI de la predicción. Ejecuta el `score` que sugiere el mensaje y repite.
+**`monitor` termina con `no batch predictions for 2024-08 at data/predictions/batch/2024-08.parquet; run: uv run credit-mlops score --month 2024-08`.** Pasó durante la preparación de esta guía. El monitoreo necesita las predicciones del mes para calcular el PSI de la predicción. Ejecuta el `score` que sugiere el mensaje y repite.
 
 **`monitor` responde `MLflow server at http://127.0.0.1:5000 is unreachable ... start it with: uv run credit-mlops mlflow-server`.** El servidor de MLflow no está corriendo. Inícialo en la segunda terminal (`uv run credit-mlops mlflow-server`) y repite.
 
@@ -471,4 +471,4 @@ Una diferencia práctica es que un flujo de Prefect es una función de Python qu
 
 ## Para el instructor
 
-45 minutos. En la Mac del instructor, `score` tardó unos 4 s, `monitor` entre 3 y 6 s, el notebook completo entre 42 y 52 s, `simulate-production` de 3 meses unos 12 s con el servidor temporal de Prefect y unos 6 s con `prefect server start`, que estuvo listo en unos 3 s. Lanza el notebook (paso 5) apenas termines el paso 4 y comenta los resultados mientras corre. Dedica el tiempo a la tabla de incidentes y a la pregunta de por qué el champion de 2024-12 no se puede confirmar hasta 2026. Si vas tarde, recorta la parte opcional del paso 6 (interfaz de Prefect y `serve-flow`). La tabla Prefect y Airflow se lee en un minuto.
+45 minutos. En la Mac del instructor, `score` tardó unos 4 s, `monitor` entre 3 y 6 s, el notebook completo entre 52 y 60 s, `simulate-production` de 3 meses unos 12 s con el servidor temporal de Prefect y unos 6 s con `prefect server start`, que estuvo listo en unos 3 s. Lanza el notebook (paso 5) apenas termines el paso 4 y comenta los resultados mientras corre. Dedica el tiempo a la tabla de incidentes y a la pregunta de por qué el champion de 2024-12 no se puede confirmar hasta 2026. Si vas tarde, recorta la parte opcional del paso 6 (interfaz de Prefect y `serve-flow`). La tabla Prefect y Airflow se lee en un minuto.

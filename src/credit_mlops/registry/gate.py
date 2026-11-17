@@ -73,7 +73,7 @@ def promote(settings: Settings) -> GateDecision:
     name = settings.registered_model_name
     challenger = alias_version(client, name, "challenger")
     if challenger is None:
-        raise ValueError("no @challenger to promote; run credit-mlops train first")
+        raise ValueError("no @challenger to promote; first run: uv run credit-mlops train")
     champion = alias_version(client, name, "champion")
     if champion == challenger:
         raise ValueError(f"version {challenger} is already champion")

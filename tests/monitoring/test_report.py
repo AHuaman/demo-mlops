@@ -194,7 +194,7 @@ def test_monitor_contract_failure_blocks_and_logs(small_settings, small_window, 
 
 
 def test_monitor_missing_batch_file_points_to_score(monitor_settings):
-    with pytest.raises(FileNotFoundError, match="credit-mlops score --month 2022-02"):
+    with pytest.raises(FileNotFoundError, match="uv run credit-mlops score --month 2022-02"):
         monitor_month(monitor_settings, date(2022, 2, 1))
 
 
