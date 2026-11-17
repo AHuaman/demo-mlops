@@ -372,4 +372,4 @@ No promuevas la versión 2. La guía 04 sirve la versión 1.
 
 ## Para el instructor
 
-40 minutos. En la Mac del instructor, `mlflow-server` estuvo listo entre 3 y 9 s, `train` tardó entre 4 y 5 s y `promote` entre 2 y 3 s. La mayor parte del bloque es el recorrido por la interfaz (paso 3) y la lectura de la grilla plana (paso 4). Si vas tarde, recorta la ficha del modelo (paso 5) y el rechazo del gate (paso 10); el paso 9 (reproducir) es el cierre del bloque y no conviene saltarlo. Pide a los estudiantes que dejen corriendo la terminal del servidor para la guía 04.
+40 minutos. En la Mac del instructor, `mlflow-server` estuvo listo entre 3 y 9 s, `train` tardó unos 7,5 s (ahora valida el contrato de datos de los 36 meses antes de entrenar) y `promote` entre 2 y 3 s. La mayor parte del bloque es el recorrido por la interfaz (paso 3) y la lectura de la grilla plana (paso 4). Si vas tarde, recorta la ficha del modelo (paso 5) y el rechazo del gate (paso 10); el paso 9 (reproducir) es el cierre del bloque y no conviene saltarlo. Pide a los estudiantes que dejen corriendo la terminal del servidor para la guía 04.

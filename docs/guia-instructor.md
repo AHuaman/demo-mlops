@@ -25,7 +25,7 @@ El contenido central cabe en 3 h 50 min, con una pausa de 10 minutos. La última
 - [ ] Haz público el repositorio (**Settings**, **General**, **Danger Zone**, **Change visibility**) o da acceso de lectura a los estudiantes. Hoy es privado. Una plantilla privada solo la ve quien tiene acceso, y lo mismo pasa con los enlaces a las corridas de CI de la guía 05 y de esta guía.
 - [ ] Marca `AHuaman/demo-mlops` como repositorio plantilla en GitHub (**Settings**, **General**, casilla **Template repository**). Sin esto los estudiantes no ven el botón **Use this template** (guía 00, paso 5).
 - [ ] Envía los primers (`docs/primers/`) y `docs/guias/00-preparacion.md` con tiempo para que preparen sus laptops.
-- [ ] Pide a cada estudiante que ejecute `uv run credit-mlops doctor` y te mande la salida. Ninguna línea debe tener `✗`.
+- [ ] Pide a cada estudiante que ejecute `uv run credit-mlops doctor` y te mande la salida. Ninguna línea debe tener `✗` (o `X`, si la salida pasó por un archivo o por `clip` en Windows).
 - [ ] En una Mac recién configurada, comprueba que el puerto 5000 esté libre. El receptor AirPlay de macOS puede escuchar en el 5000 (**Ajustes del Sistema**, **General**, **AirDrop y Handoff**, desactiva **Receptor AirPlay**), y `doctor` marcará entonces el puerto como ocupado.
 - [ ] Recuerda a quienes usan macOS que ejecuten `brew install libomp`. Sin libomp, XGBoost no carga y `doctor` lo marca con `✗`.
 - [ ] En una máquina con Windows, verifica los bloques de PowerShell de las guías y `docker compose up` de la guía 04, que llega a MLflow por `host.docker.internal`. Los bloques de PowerShell no se ejecutaron al escribir las guías.
@@ -123,10 +123,10 @@ uv run credit-mlops serve-flow
 
 | Comando | Tiempo |
 | --- | --- |
-| Corrida completa del laboratorio (`uv run pytest -m slow tests/integration/test_lab.py`: lago 2019-2025, entrenamiento, 36 meses de producción y los dos incidentes) | 29 s (32 s de reloj con el arranque de `uv`) |
+| Corrida completa del laboratorio (`uv run pytest -m slow tests/integration/test_lab.py`: lago 2019-2025, entrenamiento, 36 meses de producción y los dos incidentes) | 51 s (55 s de reloj con el arranque de `uv`) |
 | `uv run pytest -m slow` (laboratorio, `test_flows.py` y los dos notebooks: 8 pruebas) | 123 s (125 s de reloj) |
-| Notebook `06_laboratorio_monitoreo.ipynb` completo, ejecutado con `jupyter nbconvert --execute` | entre 42 y 52 s, en cinco ejecuciones |
-| `uv run pytest -m slow tests/integration/test_notebooks.py` (los dos notebooks) | 47 s (50 s de reloj) |
+| Notebook `06_laboratorio_monitoreo.ipynb` completo, ejecutado con `jupyter nbconvert --execute` | entre 52 y 60 s, en dos ejecuciones |
+| `uv run pytest -m slow tests/integration/test_notebooks.py` (los dos notebooks) | 55 s (58 s de reloj) |
 | `uv run pytest` (suite por defecto: 182 pruebas) | 55 s (59 s de reloj) |
 | `uv run credit-mlops score --month 2024-07` | 4 s de reloj |
 | `uv run credit-mlops monitor --month 2024-07` | entre 3 y 6 s de reloj |

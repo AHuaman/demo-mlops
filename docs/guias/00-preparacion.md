@@ -100,7 +100,7 @@ uv crea la carpeta `.venv` con todas las dependencias. La primera vez descarga v
 uv run credit-mlops doctor
 ```
 
-Cada línea empieza con un símbolo. `✓` es correcto, `✗` es un problema que debes arreglar, `!` es un aviso de algo opcional. Salida de una máquina con todo listo (las rutas y la versión de Python cambian en la tuya):
+Cada línea empieza con un símbolo. `✓` es correcto, `✗` es un problema que debes arreglar, `!` es un aviso de algo opcional. Si rediriges la salida a un archivo o al portapapeles en Windows (por ejemplo, `uv run credit-mlops doctor > doctor.txt`), verás `OK` y `X` en lugar de `✓` y `✗`. Salida de una máquina con todo listo (las rutas y la versión de Python cambian en la tuya):
 
 ```text
 ✓ Python 3.13: Python 3.13.13
