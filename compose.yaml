@@ -1,0 +1,13 @@
+# The MLflow server runs on the host: uv run credit-mlops mlflow-server
+services:
+  api:
+    build: .
+    image: credit-mlops-api
+    ports:
+      - "8000:8000"
+    environment:
+      CREDIT_MLOPS_MLFLOW_TRACKING_URI: http://host.docker.internal:5000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data/predictions:/app/data/predictions

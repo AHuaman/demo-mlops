@@ -1,0 +1,137 @@
+# Preparación del entorno
+
+Haz esta guía en tu laptop antes de la sesión. Toma unos 30 minutos, casi todo descargas. Al final, un comando (`doctor`) te dice si todo quedó listo.
+
+Los comandos están en inglés tal como los escribirías. Donde macOS y Windows difieren, hay un bloque para cada uno. En Windows usa **PowerShell** (no CMD).
+
+## Qué vas a instalar
+
+| Herramienta | Para qué |
+| --- | --- |
+| git | Clonar tu repositorio del curso |
+| uv | Instala Python 3.13 y las dependencias del proyecto |
+| Docker Desktop | Ejecutar la API en un contenedor (parte de la sesión) |
+| libomp (solo macOS) | Librería que XGBoost necesita para cargar |
+
+Si nunca has usado Docker o una API, lee antes los primers de `docs/primers/`. No hace falta dominarlos para esta guía.
+
+## 1. git
+
+macOS (Terminal). Si `git --version` ya responde, salta este paso.
+
+```bash
+xcode-select --install
+```
+
+Windows (PowerShell):
+
+```powershell
+winget install --id Git.Git -e
+```
+
+Cierra y vuelve a abrir la terminal. Verifica con `git --version`.
+
+## 2. uv
+
+uv descarga Python 3.13 por ti, así que no necesitas instalar Python aparte.
+
+macOS:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Cierra y vuelve a abrir la terminal. Verifica con `uv --version`.
+
+## 3. libomp (solo macOS)
+
+XGBoost necesita el runtime OpenMP. Con Homebrew (https://brew.sh):
+
+```bash
+brew install libomp
+```
+
+Si no haces este paso, `doctor` marcará XGBoost con ✗ y te mostrará este mismo comando (ver "Si algo falla").
+
+## 4. Docker Desktop
+
+Descarga Docker Desktop desde https://www.docker.com/products/docker-desktop/ e instálalo. Ábrelo y espera a que diga "Engine running".
+
+En Windows, Docker Desktop usa WSL2. Si el instalador te lo pide, ejecuta en PowerShell como administrador y reinicia:
+
+```powershell
+wsl --install
+```
+
+Verifica con `docker --version` y `docker info`. El segundo comando debe responder sin error.
+
+## 5. Tu repositorio
+
+Cada estudiante trabaja en su propio repositorio, creado desde la plantilla del curso. Así ves tus propios checks de CI en rojo y en verde.
+
+1. Entra a https://github.com/AHuaman/demo-mlops (necesitas una cuenta de GitHub).
+2. Pulsa **Use this template** y elige **Create a new repository**. Ponle el nombre que quieras y créalo.
+3. Clona tu repositorio:
+
+```bash
+git clone https://github.com/<tu-usuario>/<tu-repo>.git
+cd <tu-repo>
+```
+
+Reemplaza `<tu-usuario>` y `<tu-repo>` con tus valores. El instructor publica la plantilla antes de la clase. Si no ves el botón **Use this template**, avísale.
+
+## 6. Dependencias
+
+```bash
+uv sync --all-extras
+```
+
+uv crea la carpeta `.venv` con todas las dependencias. La primera vez descarga varios cientos de MB, así que usa una buena conexión.
+
+## 7. Verifica con doctor
+
+```bash
+uv run credit-mlops doctor
+```
+
+Cada línea empieza con un símbolo. `✓` es correcto, `✗` es un problema que debes arreglar, `!` es un aviso de algo opcional. Si rediriges la salida a un archivo o al portapapeles en Windows (por ejemplo, `uv run credit-mlops doctor > doctor.txt`), verás `OK` y `X` en lugar de `✓` y `✗`. Salida de una máquina con todo listo (las rutas y la versión de Python cambian en la tuya):
+
+```text
+✓ Python 3.13: Python 3.13.13
+✓ uv instalado: /opt/homebrew/bin/uv
+✓ git instalado: /opt/homebrew/bin/git
+✓ DVC disponible: dvc se puede importar
+✓ XGBoost carga correctamente: import xgboost funciona
+✓ Docker en ejecución: docker info responde
+✓ MLflow accesible: sin servidor en http://127.0.0.1:5000; el puerto 5000 está libre para iniciarlo
+```
+
+Que MLflow diga "sin servidor" es normal. El servidor se inicia durante la sesión.
+
+Docker es opcional para `doctor` (si falla verás `!`), pero lo necesitas para la parte de la API.
+
+## Si algo falla
+
+**XGBoost con ✗ en macOS.** Ejemplo de salida cuando falta libomp:
+
+```text
+✗ XGBoost carga correctamente: falta el runtime OpenMP: ejecuta brew install libomp
+```
+
+Ejecuta `brew install libomp` y repite `doctor`.
+
+**XGBoost con "tardó más de 60 s".** La primera importación puede ser lenta. Ejecuta `doctor` otra vez.
+
+**uv o git "no está en el PATH".** Cierra la terminal y ábrela de nuevo. Si sigue igual, repite la instalación de ese paso.
+
+**Docker con `!`.** Abre Docker Desktop y espera a que termine de iniciar. En Windows, revisa que el backend WSL2 esté activo en Settings, General.
+
+**`doctor` termina con código de salida 1.** Hay al menos un `✗` en una herramienta requerida. Arregla esa línea y repite.
+
+Cuando `doctor` no muestre ningún `✗`, estás listo.

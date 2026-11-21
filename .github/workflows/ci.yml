@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - run: uv sync --locked --all-extras
+      - run: uv run ruff check
+      - run: uv run ruff format --check
+      - run: uv run pytest
+
+  quality-gate:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - run: uv sync --locked --all-extras
+      - run: uv run pytest -m slow tests/integration/test_flows.py
+      - name: Lab suite (manual runs only)
+        if: github.event_name == 'workflow_dispatch'
+        run: uv run pytest -m slow tests/integration/test_lab.py
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build image
+        run: docker build -t credit-mlops:ci .
+      - name: Run container without MLflow
+        run: docker run -d --name api -p 8000:8000 credit-mlops:ci
+      - name: Wait for /health
+        shell: bash
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health || true)
+            if [ "$code" = "200" ]; then echo "health ok after $i tries"; exit 0; fi
+            sleep 2
+          done
+          docker logs api
+          echo "health never returned 200" >&2
+          exit 1
+      - name: Assert /ready is 503 without a champion
+        shell: bash
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/ready)
+          echo "ready -> $code"
+          test "$code" = "503"

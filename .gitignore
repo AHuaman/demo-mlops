@@ -218,3 +218,19 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Superpowers working documents (specs, plans, ledgers): kept local, never committed
+docs/superpowers/
+
+# Project artifacts
+# generated lake: tracked by DVC through data/raw.dvc, never committed directly
+/data/raw/
+/data/predictions/
+mlruns/
+mlartifacts/
+*.db
+.env
+.env.databricks
+.dvc-remote/
+.ipynb_checkpoints/
+.superpowers/
